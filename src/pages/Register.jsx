@@ -1,86 +1,94 @@
-import { useState } from "react";
-import axios from "axios";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { User, Phone, Briefcase } from "lucide-react";
 
-export default function Register() {
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    role: "OWNER",
-  });
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+const schema = z.object({
+  name: z.string().min(2, "Ism kamida 2 harf bo‘lishi kerak"),
+  phone: z.string().regex(/^\+998\d{9}$/, "Telefon raqam +998 bilan boshlanishi kerak"),
+  role: z.enum(["owner", "tenant"], {
+    errorMap: () => ({ message: "Iltimos rolni tanlang" }),
+  }),
+});
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+export default function Register({ onSuccess }) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({ resolver: zodResolver(schema) });
+
+  const onSubmit = async (data) => {
+    console.log("📤 Yuborilayotgan ma'lumot:", data);
 
     try {
-      await axios.post("https://web-bot-backend.onrender.com/users", form);
+      const res = await fetch("https://web-bot-backend.onrender.com/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-      setSuccess(true);
+      if (!res.ok) throw new Error("Server xatosi");
+      const result = await res.json();
+      console.log("✅ Serverdan:", result);
 
-      if (window.Telegram?.WebApp) {
-        window.Telegram.WebApp.sendData("registered");
-        window.Telegram.WebApp.close();
-      }
+      // muvaffaqiyatli ro‘yxatdan o‘tgan bo‘lsa
+      onSuccess(data.role);
     } catch (err) {
-      alert("❌ Xatolik: " + err.message);
-    } finally {
-      setLoading(false);
+      alert("Xatolik: " + err.message);
     }
   };
 
-  if (success) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-green-100">
-        <h1 className="text-xl font-bold text-green-700">
-          ✅ Ro‘yxatdan o‘tdingiz!
-        </h1>
-      </div>
-    );
-  }
-
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-6 rounded-2xl shadow-lg w-80 space-y-4"
-    >
-      <h1 className="text-lg font-bold text-center">Ro‘yxatdan o‘tish</h1>
-
-      <input
-        type="text"
-        placeholder="Ism"
-        className="w-full border p-2 rounded"
-        value={form.name}
-        onChange={(e) => setForm({ ...form, name: e.target.value })}
-        required
-      />
-
-      <input
-        type="tel"
-        placeholder="Telefon raqam"
-        className="w-full border p-2 rounded"
-        value={form.phone}
-        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-        required
-      />
-
-      <select
-        className="w-full border p-2 rounded"
-        value={form.role}
-        onChange={(e) => setForm({ ...form, role: e.target.value })}
+    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-blue-50 to-blue-100">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white shadow-lg rounded-2xl p-6 w-80 space-y-4"
       >
-        <option value="OWNER">Ijara beruvchi</option>
-        <option value="TENANT">Ijara oluvchi</option>
-      </select>
+        <h1 className="text-xl font-bold text-center text-blue-600">
+          📋 Ro‘yxatdan o‘tish
+        </h1>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white p-2 rounded disabled:bg-gray-400"
-      >
-        {loading ? "⏳ Saqlanmoqda..." : "Yuborish"}
-      </button>
-    </form>
+        {/* Name */}
+        <div className="flex items-center gap-2 border rounded-lg p-2">
+          <User size={20} className="text-gray-400" />
+          <input
+            {...register("name")}
+            placeholder="Ismingiz"
+            className="w-full outline-none"
+          />
+        </div>
+        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+
+        {/* Phone */}
+        <div className="flex items-center gap-2 border rounded-lg p-2">
+          <Phone size={20} className="text-gray-400" />
+          <input
+            {...register("phone")}
+            placeholder="+998901234567"
+            className="w-full outline-none"
+          />
+        </div>
+        {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
+
+        {/* Role */}
+        <div className="flex items-center gap-2 border rounded-lg p-2">
+          <Briefcase size={20} className="text-gray-400" />
+          <select {...register("role")} className="w-full outline-none">
+            <option value="">— Rolni tanlang —</option>
+            <option value="owner">Uy beruvchi</option>
+            <option value="tenant">Uy qidiruvchi</option>
+          </select>
+        </div>
+        {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          ✅ Ro‘yxatdan o‘tish
+        </button>
+      </form>
+    </div>
   );
 }
