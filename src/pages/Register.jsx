@@ -15,7 +15,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await axios.post("http://localhost:3000/users", form);
+      await axios.post("https://web-bot-backend.onrender.com/users", form);
 
       setSuccess(true);
 
