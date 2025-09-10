@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { User, Phone, Briefcase, Lock, Image } from "lucide-react";
+import { Phone, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export default function Register({ onSuccess }) {
+export default function Login({ onSuccess }) {
   const [form, setForm] = useState({
-    name: "",
     phone: "",
     password: "",
-    role: "",
-    imgUrl: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -20,11 +17,8 @@ export default function Register({ onSuccess }) {
 
   const validate = () => {
     const newErrors = {};
-    if (form.name.trim().length < 2) newErrors.name = "Ism kamida 2 harf bo‘lishi kerak";
     if (!/^\+998\d{9}$/.test(form.phone)) newErrors.phone = "Telefon +998 bilan boshlanishi kerak";
     if (form.password.length < 6) newErrors.password = "Parol kamida 6 ta belgidan iborat bo‘lishi kerak";
-    if (!["OWNER", "TENANT"].includes(form.role)) newErrors.role = "Iltimos rolni tanlang";
-    if (form.imgUrl && !/^https?:\/\/.+\..+/.test(form.imgUrl)) newErrors.imgUrl = "To‘g‘ri URL kiriting";
     return newErrors;
   };
 
@@ -37,17 +31,21 @@ export default function Register({ onSuccess }) {
     }
 
     try {
-      const res = await fetch("https://web-bot-backend.onrender.com/users", {
+      const res = await fetch("https://web-bot-backend.onrender.com/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
 
-      if (!res.ok) throw new Error("Server xatosi");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Server xatosi");
+      }
+
       const result = await res.json();
       console.log("✅ Serverdan:", result);
 
-      onSuccess(form.role);
+      onSuccess(result);
     } catch (err) {
       alert("Xatolik: " + err.message);
     }
@@ -60,21 +58,8 @@ export default function Register({ onSuccess }) {
         className="bg-white shadow-xl rounded-3xl p-8 w-full max-w-md space-y-5"
       >
         <h1 className="text-2xl font-bold text-center text-blue-600 mb-4">
-          📋 Ro‘yxatdan o‘tish
+          🔑 Tizimga kirish
         </h1>
-
-        {/* Name */}
-        <div className="flex items-center gap-3 border rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-400 transition">
-          <User size={24} className="text-gray-400" />
-          <input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            placeholder="Ismingiz"
-            className="w-full outline-none text-gray-700 placeholder-gray-400"
-          />
-        </div>
-        {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
 
         {/* Phone */}
         <div className="flex items-center gap-3 border rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-400 transition">
@@ -103,47 +88,18 @@ export default function Register({ onSuccess }) {
         </div>
         {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
 
-        {/* Role */}
-        <div className="flex items-center gap-3 border rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-400 transition">
-          <Briefcase size={24} className="text-gray-400" />
-          <select
-            name="role"
-            value={form.role}
-            onChange={handleChange}
-            className="w-full outline-none text-gray-700"
-          >
-            <option value="">— Rolni tanlang —</option>
-            <option value="OWNER">Uy beruvchi</option>
-            <option value="TENANT">Uy qidiruvchi</option>
-          </select>
-        </div>
-        {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
-
-        {/* imgUrl */}
-        <div className="flex items-center gap-3 border rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-400 transition">
-          <Image size={24} className="text-gray-400" />
-          <input
-            name="imgUrl"
-            value={form.imgUrl}
-            onChange={handleChange}
-            placeholder="Profil rasmi URL (ixtiyoriy)"
-            className="w-full outline-none text-gray-700 placeholder-gray-400"
-          />
-        </div>
-        {errors.imgUrl && <p className="text-red-500 text-sm">{errors.imgUrl}</p>}
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
         >
-          ✅ Ro‘yxatdan o‘tish
+          ✅ Kirish
         </button>
 
-        {/* Login link */}
+        {/* Register link */}
         <p className="text-center text-gray-500 text-sm mt-3">
-          Allaqachon ro‘yxatdan o‘tganmisiz?{" "}
-          <Link to="/login" className="text-blue-600 font-semibold hover:underline">
-            Kirish
+          Ro‘yxatdan o‘tmaganmisiz?{" "}
+          <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+            Ro‘yxatdan o‘tish
           </Link>
         </p>
       </form>
