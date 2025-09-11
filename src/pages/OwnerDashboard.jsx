@@ -1,16 +1,14 @@
 import { useState, useEffect } from "react";
-import {
-  Home,
-  ClipboardList,
-  User,
-  PlusCircle,
-} from "lucide-react";
+import { Home, ClipboardList, User, PlusCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import HomePage from "./OwnerHomePage";
 import MyHouses from "./MyHouses";
 import Profile from "./profile";
 import AddHouse from "./OwnerAddHouse";
+import axios from "axios";
 
 export default function OwnerDashboard() {
+  const navigate = useNavigate();
   const [active, setActive] = useState("home");
   const [profileData, setProfileData] = useState({
     name: "",
@@ -20,25 +18,54 @@ export default function OwnerDashboard() {
   const [houses, setHouses] = useState([]);
 
   useEffect(() => {
-    const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    const fetchProfile = async () => {
+      try {
+        // Telegram WebApp ma'lumotlarini olish
+        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        if (tgUser) {
+          setProfileData({
+            name: tgUser.first_name || "",
+            username: tgUser.username || "",
+            image: tgUser.photo_url || "https://via.placeholder.com/150",
+          });
+        } else {
+          // Backenddan profile ma'lumotlarini olish
+          const res = await axios.get("http://localhost:3000/users/me", {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
 
-    if (tgUser) {
-      setProfileData({
-        name: tgUser.first_name || "",
-        username: tgUser.username || "",
-        image: tgUser.photo_url || "https://via.placeholder.com/150",
-      });
-    } else {
-      // Brauzer uchun fallback
-      setProfileData({
-        name: "Test User",
-        username: "testuser",
-        image: "https://via.placeholder.com/150",
-      });
-    }
-  }, []);
+          // Backenddan user obyekti mavjudligini tekshirish
+          const user = res.data
+          if (!user) throw new Error("User data mavjud emas");
 
+          setProfileData({
+            name: user.name || "Test User",
+            username: user.username || "testuser",
+            image: user.imgUrl || "https://via.placeholder.com/150",
+          });
+        }
+      } catch (err) {
+        console.error("Profile olishda xato:", err);
 
+        // 401 Unauthorized bo‘lsa, login sahifasiga yo‘naltirish
+        if (err.response?.status === 404) {
+          alert("Siz tizimga kirishingiz kerak!");
+          navigate("/login");
+        } else {
+          // Boshqa xatolar uchun fallback
+          setProfileData({
+            name: "Test User",
+            username: "testuser",
+            image: "https://via.placeholder.com/150",
+          });
+        }
+      }
+    };
+
+    fetchProfile();
+  }, [navigate]);
 
   const tabs = [
     { id: "home", label: "Bosh sahifa", icon: <Home size={22} /> },
@@ -68,7 +95,7 @@ export default function OwnerDashboard() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      {/* Header soddalashtirildi */}
+      {/* Header */}
       <header className="bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-blue-600">IJARA.uz</h1>
         <div className="flex items-center space-x-2">
@@ -77,9 +104,8 @@ export default function OwnerDashboard() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto p-4">
-        {renderContent()}
-      </main>
+      {/* Main content */}
+      <main className="flex-1 overflow-y-auto p-4">{renderContent()}</main>
 
       {/* Footer navigation */}
       <footer className="bg-white shadow-t fixed bottom-0 w-full">

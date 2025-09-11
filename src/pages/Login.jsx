@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Phone, Lock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Login({ onSuccess }) {
+  
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     phone: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,9 +21,11 @@ export default function Login({ onSuccess }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!/^\+998\d{9}$/.test(form.phone)) newErrors.phone = "Telefon +998 bilan boshlanishi kerak";
-    if (form.password.length < 6) newErrors.password = "Parol kamida 6 ta belgidan iborat bo‘lishi kerak";
-    return newErrors;
+    if (!/^\+998\d{9}$/.test(form.phone))
+      newErrors.phone = "Telefon +998 bilan boshlanishi kerak";
+    if (form.password.length < 6)
+      newErrors.password = "Parol kamida 6 ta belgidan iborat bo‘lishi kerak";
+    return newErrors; console.error(err);
   };
 
   const handleSubmit = async (e) => {
@@ -31,23 +37,39 @@ export default function Login({ onSuccess }) {
     }
 
     try {
-      const res = await fetch("https://web-bot-backend.onrender.com/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      setLoading(true);
+
+      const res = await axios.post("http://localhost:3000/users/login", {
+        phone: form.phone,
+        password: form.password,
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Server xatosi");
+      const { accessToken, user } = res.data;
+      console.log("✅ Serverdan:", res.data);
+
+      localStorage.setItem("accessToken", accessToken);
+
+      if (onSuccess) onSuccess(res.data.safeUSer);
+
+      // navigate("/admin");
+
+    } catch (err) {
+      if (err.response?.status === 400 || err.response?.status === 401) {
+        navigate('/register')
+        return
+      }
+      if (err.response?.status === 404) {
+        alert('parol yoki email xato')
+        return
       }
 
-      const result = await res.json();
-      console.log("✅ Serverdan:", result);
-
-      onSuccess(result);
-    } catch (err) {
-      alert("Xatolik: " + err.message);
+      alert(
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Login xatosi"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,19 +108,25 @@ export default function Login({ onSuccess }) {
             className="w-full outline-none text-gray-700 placeholder-gray-400"
           />
         </div>
-        {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password}</p>
+        )}
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
         >
-          ✅ Kirish
+          {loading ? "⏳ Kutyapmiz..." : "✅ Kirish"}
         </button>
 
         {/* Register link */}
         <p className="text-center text-gray-500 text-sm mt-3">
           Ro‘yxatdan o‘tmaganmisiz?{" "}
-          <Link to="/register" className="text-blue-600 font-semibold hover:underline">
+          <Link
+            to="/register"
+            className="text-blue-600 font-semibold hover:underline"
+          >
             Ro‘yxatdan o‘tish
           </Link>
         </p>

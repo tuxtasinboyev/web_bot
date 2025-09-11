@@ -6,10 +6,10 @@ import {
   PlusIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
-import { file } from 'zod';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const UsersTab = () => {
-  // State for users data
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,40 +18,45 @@ const UsersTab = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [newUser, setNewUser] = useState({
     name: '',
     phone: '',
     password: '',
     role: 'TENANT',
-    imgUrl: file
+    imgUrl: '',
+    file: null
   });
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const navigate = useNavigate();
+  const token = localStorage.getItem("accessToken");
 
-
-  // Mock data - real loyihada API dan keladi
-  useEffect(() => {
-    // API chaqiruvini simulatsiya qilish
-    setTimeout(() => {
-      const mockUsers = [
-        { id: 1, name: 'John Doe', phone: '+998901234567', role: 'ADMIN', createdAt: '2023-01-15', imgUrl: '' },
-        { id: 2, name: 'Jane Smith', phone: '+998907654321', role: 'OWNER', createdAt: '2023-02-20', imgUrl: '' },
-        { id: 3, name: 'Robert Johnson', phone: '+998935791234', role: 'TENANT', createdAt: '2023-03-10', imgUrl: '' },
-        { id: 4, name: 'Sarah Williams', phone: '+998941236547', role: 'OWNER', createdAt: '2023-04-05', imgUrl: '' },
-        { id: 5, name: 'Michael Brown', phone: '+998501238974', role: 'TENANT', createdAt: '2023-05-12', imgUrl: '' },
-        { id: 6, name: 'Emily Davis', phone: '+998331234567', role: 'OWNER', createdAt: '2023-06-18', imgUrl: '' },
-        { id: 7, name: 'David Wilson', phone: '+998971235689', role: 'TENANT', createdAt: '2023-07-22', imgUrl: '' },
-        { id: 8, name: 'Lisa Miller', phone: '+998901239876', role: 'ADMIN', createdAt: '2023-08-30', imgUrl: '' },
-        { id: 9, name: 'James Taylor', phone: '+998941238765', role: 'TENANT', createdAt: '2023-09-05', imgUrl: '' },
-        { id: 10, name: 'Susan Anderson', phone: '+998331239876', role: 'OWNER', createdAt: '2023-10-15', imgUrl: '' }
-      ];
-      setUsers(mockUsers);
-      setFilteredUsers(mockUsers);
+  // Foydalanuvchilarni olish
+  const fetchUsers = async () => {
+    try {
+      const res = await axios.get('http://localhost:3000/users', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(res.data.users);
+      setFilteredUsers(res.data.users);
+      setTotal(res.data.total);
+      setTotalPages(res.data.totalPages);
       setLoading(false);
-    }, 1000);
-  }, []);
+    } catch (error) {
+      console.error('Foydalanuvchilarni yuklashda xatolik:', error);
+      setLoading(false);
+    }
+  };
 
-  // Foydalanuvchilarni qidirish bo'yicha filtrlash
+  useEffect(() => {
+    if (!token) navigate('/login');
+    else fetchUsers();
+  }, [token, navigate]);
+
+  // Qidiruv
   useEffect(() => {
     const filtered = users.filter(user =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,88 +66,15 @@ const UsersTab = () => {
     setCurrentPage(1);
   }, [searchTerm, users]);
 
-  // Sahifalash parametrlari
   const usersPerPage = 5;
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-
-  // Joriy foydalanuvchilarni olish
+  const totalFilteredPages = Math.ceil(filteredUsers.length / usersPerPage);
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  // Sahifani o'zgartirish
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleSearch = (e) => setSearchTerm(e.target.value);
 
-  // Qidiruvni boshqarish
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Foydalanuvchini tahrirlash
-  const handleEditUser = (user) => {
-    setSelectedUser(user);
-    setShowEditModal(true);
-  };
-
-  // Tahrirlangan foydalanuvchini saqlash
-  const handleSaveEdit = () => {
-    // Real loyihada bu yerda API chaqiruvi bo'ladi
-    const updatedUsers = users.map(user =>
-      user.id === selectedUser.id ? selectedUser : user
-    );
-    setUsers(updatedUsers);
-    setShowEditModal(false);
-    setSelectedUser(null);
-  };
-
-  // Foydalanuvchini o'chirish
-  const handleDeleteUser = (user) => {
-    setSelectedUser(user);
-    setShowDeleteModal(true);
-  };
-
-  // O'chirishni tasdiqlash
-  const confirmDelete = () => {
-    // Real loyihada bu yerda API chaqiruvi bo'ladi
-    const updatedUsers = users.filter(user => user.id !== selectedUser.id);
-    setUsers(updatedUsers);
-    setShowDeleteModal(false);
-    setSelectedUser(null);
-  };
-
-  // Yangi foydalanuvchi ma'lumotlarini o'zgartirish
-  const handleNewUserChange = (e) => {
-    const { name, files, type, value } = e.target;
-    if (type === 'file' && files[0]) {
-      // Faylni preview qilish uchun URL
-      const file = files[0];
-      const imageUrl = URL.createObjectURL(file);
-      setNewUser((prev) => ({ ...prev, [name]: imageUrl, file: file }));
-    } else {
-      setNewUser((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-
-  // Yangi foydalanuvchi qo'shish
-  const handleAddUser = () => {
-    // Real loyihada bu yerda API chaqiruvi bo'ladi
-    const userToAdd = {
-      ...newUser,
-      id: users.length + 1,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-    setUsers([...users, userToAdd]);
-    setNewUser({
-      name: '',
-      phone: '',
-      password: '',
-      role: 'TENANT',
-      imgUrl: ''
-    });
-  };
-
-  // Rol uchun ranglar
   const getRoleColor = (role) => {
     switch (role) {
       case 'ADMIN': return 'bg-red-100 text-red-800';
@@ -152,7 +84,168 @@ const UsersTab = () => {
     }
   };
 
-  // Yuklash holatini ko'rsatish
+  // Foydalanuvchini tahrirlash
+  const handleEditUser = (user) => {
+    setSelectedUser({ ...user, file: null, password: '' });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      let res;
+
+      if (selectedUser.file) {
+        const formData = new FormData();
+        formData.append('imgUrl', selectedUser.file);
+        Object.keys(selectedUser).forEach((key) => {
+          if (key !== "imgUrl" && key !== "file" && selectedUser[key] !== undefined && selectedUser[key] !== null) {
+            formData.append(key, selectedUser[key]);
+          }
+        });
+        
+        res = await axios.put(
+          `http://localhost:3000/users/${selectedUser.id}`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
+        );
+      } else {
+        const userData = {
+          name: selectedUser.name,
+          phone: selectedUser.phone,
+          role: selectedUser.role
+        };
+        if (selectedUser.password?.trim()) userData.password = selectedUser.password;
+
+        res = await axios.put(
+          `http://localhost:3000/users/${selectedUser.id}`,
+          userData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+
+      // Yangilangan ma'lumotlarni olish
+      await fetchUsers();
+      setShowEditModal(false);
+      setSelectedUser(null);
+      alert('Foydalanuvchi muvaffaqiyatli yangilandi!');
+    } catch (error) {
+      console.error(error.response?.data || error.message);
+      alert('Foydalanuvchini yangilashda xatolik yuz berdi: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:3000/users/${selectedUser.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // To'g'ridan-to'g'ri state yangilash o'rniga, foydalanuvchilarni qayta yuklash
+      await fetchUsers();
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Foydalanuvchini o\'chirishda xatolik:', error);
+      alert('Foydalanuvchini o\'chirishda xatolik yuz berdi');
+    }
+  };
+
+  // TO'G'IRLANGAN: Yangi foydalanuvchi ma'lumotlarini o'zgartirish
+  const handleNewUserChange = (e) => {
+    const { name, value, files, type } = e.target;
+    
+    if (type === 'file') {
+      const file = files?.[0];
+      if (file) {
+        setNewUser(prev => ({
+          ...prev,
+          file: file,
+          imgUrl: URL.createObjectURL(file)
+        }));
+      }
+    } else {
+      setNewUser(prev => ({ 
+        ...prev, 
+        [name]: value 
+      }));
+    }
+  };
+
+  // TO'G'IRLANGAN: Yangi foydalanuvchi qo'shish
+  const handleAddUser = async () => {
+    // Validatsiya
+    if (!newUser.name.trim() || !newUser.phone.trim() || !newUser.password.trim()) {
+      alert('Ism, telefon raqami va parol majburiy maydonlar!');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      
+      // Asosiy ma'lumotlarni qo'shish
+      formData.append('name', newUser.name.trim());
+      formData.append('phone', newUser.phone.trim());
+      formData.append('password', newUser.password);
+      formData.append('role', newUser.role);
+      
+      // Agar fayl tanlangan bo'lsa, uni qo'shish
+      if (newUser.file) {
+        formData.append('imgUrl', newUser.file);
+      }
+
+      const response = await axios.post('http://localhost:3000/users', formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`, 
+          'Content-Type': 'multipart/form-data' 
+        }
+      });
+
+      // MUAMMO HAL QILINDI: Response ichidan yangi user ma'lumotlarini olish va ro'yxatga qo'shish
+      const newUserData = response.data.data || response.data;
+      
+      // Eski ro'yxatga yangi userni qo'shish (oxirgi elementga emas, boshiga qo'shish)
+      setUsers(prevUsers => [newUserData, ...prevUsers]);
+      setFilteredUsers(prevUsers => [newUserData, ...prevUsers]);
+      setTotal(prevTotal => prevTotal + 1);
+      
+      // Formani tozalash
+      setNewUser({ 
+        name: '', 
+        phone: '', 
+        password: '', 
+        role: 'TENANT', 
+        imgUrl: '', 
+        file: null 
+      });
+      
+      setShowAddModal(false);
+      alert('Foydalanuvchi muvaffaqiyatli qo\'shildi!');
+      
+    } catch (error) {
+      console.error('Foydalanuvchi qo\'shishda xatolik:', error);
+      const errorMessage = error.response?.data?.message || error.message;
+      alert('Foydalanuvchi qo\'shishda xatolik yuz berdi: ' + errorMessage);
+    }
+  };
+
+  // TO'G'IRLANGAN: Modal yopish funksiyasi
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    // Formani tozalash
+    setNewUser({
+      name: '',
+      phone: '',
+      password: '',
+      role: 'TENANT',
+      imgUrl: '',
+      file: null
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -195,6 +288,10 @@ const UsersTab = () => {
         <div className="bg-white p-4 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-800">{users.filter(u => u.role === 'ADMIN').length}</h3>
           <p className="text-gray-600">Administratorlar</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-800">{users.filter(u => u.role === 'TENANT').length}</h3>
+          <p className="text-gray-600">Ijarachilar</p>
         </div>
       </div>
 
@@ -248,7 +345,7 @@ const UsersTab = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.createdAt}
+                      {new Date(user.createdAt).toLocaleDateString('uz-UZ')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -270,7 +367,7 @@ const UsersTab = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                     Hech qanday foydalanuvchi topilmadi
                   </td>
                 </tr>
@@ -280,16 +377,16 @@ const UsersTab = () => {
         </div>
 
         {/* Sahifalash */}
-        {totalPages > 1 && (
+        {totalFilteredPages > 1 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{indexOfFirstUser + 1}</span> to{' '}
+                  Ko'rsatilmoqda <span className="font-medium">{indexOfFirstUser + 1}</span> dan{' '}
                   <span className="font-medium">
                     {indexOfLastUser > filteredUsers.length ? filteredUsers.length : indexOfLastUser}
-                  </span>{' '}
-                  of <span className="font-medium">{filteredUsers.length}</span> results
+                  </span> gacha{' '}
+                  jami <span className="font-medium">{filteredUsers.length}</span> ta natija
                 </p>
               </div>
               <div>
@@ -303,7 +400,7 @@ const UsersTab = () => {
                     &larr;
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  {Array.from({ length: totalFilteredPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => paginate(page)}
@@ -318,7 +415,7 @@ const UsersTab = () => {
 
                   <button
                     onClick={() => paginate(currentPage + 1)}
-                    disabled={currentPage === totalPages}
+                    disabled={currentPage === totalFilteredPages}
                     className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
                   >
                     <span className="sr-only">Keyingi</span>
@@ -331,105 +428,9 @@ const UsersTab = () => {
         )}
       </div>
 
-      {/* Yangi foydalanuvchi qo'shish formasi */}
-      <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Yangi foydalanuvchi qo'shish</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
-            <input
-              type="text"
-              name="name"
-              value={newUser.name}
-              onChange={handleNewUserChange}
-              placeholder="To'liq ism"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Telefon raqami</label>
-            <input
-              type="text"
-              name="phone"
-              value={newUser.phone}
-              onChange={handleNewUserChange}
-              placeholder="+998901234567"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
-            <input
-              type="password"
-              name="password"
-              value={newUser.password}
-              onChange={handleNewUserChange}
-              placeholder="Parol"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
-            <select
-              name="role"
-              value={newUser.role}
-              onChange={handleNewUserChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="TENANT">Ijarachi</option>
-              <option value="OWNER">Egasi</option>
-              <option value="ADMIN">Administrator</option>
-            </select>
-          </div>
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Profil rasmi (ixtiyoriy)
-          </label>
-
-          <div className="flex items-center space-x-4">
-            {/* Preview */}
-            {newUser.imgUrl ? (
-              <img
-                src={newUser.imgUrl}
-                alt="Preview"
-                className="w-14 h-14 rounded-full object-cover border"
-              />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                Yo‘q
-              </div>
-            )}
-
-            {/* Button-style upload */}
-            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition">
-              Rasmdan tanlash
-              <input
-                type="file"
-                name="imgUrl"
-                onChange={handleNewUserChange}
-                className="hidden"
-                accept="image/*"
-              />
-            </label>
-          </div>
-        </div>
-
-        <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center disabled:opacity-50"
-          onClick={handleAddUser}
-          disabled={!newUser.name || !newUser.phone || !newUser.password}
-        >
-          <PlusIcon className="h-5 w-5 mr-1" />
-          Foydalanuvchi qo'shish
-        </button>
-      </div>
-
       {/* Tahrirlash modali */}
       {showEditModal && selectedUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-800 mb-4">Foydalanuvchini tahrirlash</h3>
             <div className="mb-4">
@@ -451,6 +452,16 @@ const UsersTab = () => {
               />
             </div>
             <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Parol (o'zgarishsiz qoldirish uchun bo'sh qoldiring)</label>
+              <input
+                type="password"
+                value={selectedUser.password || ''}
+                onChange={(e) => setSelectedUser({ ...selectedUser, password: e.target.value })}
+                placeholder="Yangi parol (ixtiyoriy)"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
               <select
                 value={selectedUser.role}
@@ -462,10 +473,53 @@ const UsersTab = () => {
                 <option value="ADMIN">Administrator</option>
               </select>
             </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Profil rasmi (ixtiyoriy)
+              </label>
+
+              <div className="flex items-center space-x-4">
+                {selectedUser.imgUrl ? (
+                  <img
+                    src={selectedUser.imgUrl}
+                    alt="Preview"
+                    className="w-14 h-14 rounded-full object-cover border"
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+                    Yo'q
+                  </div>
+                )}
+
+                <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 transition">
+                  Rasmdan tanlash
+                  <input
+                    type="file"
+                    name="imgUrl"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setSelectedUser(prev => ({
+                          ...prev,
+                          file, // serverga yuborish uchun
+                          imgUrl: URL.createObjectURL(file) // preview
+                        }));
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                onClick={() => setShowEditModal(false)}
+                onClick={() => {
+                  setShowEditModal(false);
+                  setSelectedUser(null);
+                }}
               >
                 Bekor qilish
               </button>
@@ -482,7 +536,7 @@ const UsersTab = () => {
 
       {/* O'chirishni tasdiqlash modali */}
       {showDeleteModal && selectedUser && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-800 mb-4">O'chirishni tasdiqlash</h3>
             <p className="text-gray-600 mb-6">
@@ -492,7 +546,10 @@ const UsersTab = () => {
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-                onClick={() => setShowDeleteModal(false)}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setSelectedUser(null);
+                }}
               >
                 Bekor qilish
               </button>
@@ -506,14 +563,18 @@ const UsersTab = () => {
           </div>
         </div>
       )}
+
+      {/* TO'G'IRLANGAN: Yangi foydalanuvchi qo'shish modali */}
       {showAddModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="relative bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
-            <h3 className="text-lg font-medium text-gray-800 mb-4">Yangi foydalanuvchi qo‘shish</h3>
+            <h3 className="text-lg font-medium text-gray-800 mb-4">Yangi foydalanuvchi qo'shish</h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ism <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="name"
@@ -521,10 +582,13 @@ const UsersTab = () => {
                   onChange={handleNewUserChange}
                   placeholder="To'liq ism"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon raqami</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telefon raqami <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="text"
                   name="phone"
@@ -532,13 +596,16 @@ const UsersTab = () => {
                   onChange={handleNewUserChange}
                   placeholder="+998901234567"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Parol</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Parol <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="password"
                   name="password"
@@ -546,6 +613,7 @@ const UsersTab = () => {
                   onChange={handleNewUserChange}
                   placeholder="Parol"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
               </div>
               <div>
@@ -577,7 +645,7 @@ const UsersTab = () => {
                   />
                 ) : (
                   <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-                    Yo‘q
+                    Yo'q
                   </div>
                 )}
 
@@ -596,27 +664,23 @@ const UsersTab = () => {
 
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={closeAddModal}
                 className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
               >
                 Bekor qilish
               </button>
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center justify-center disabled:opacity-50"
-                onClick={() => {
-                  handleAddUser();
-                  setShowAddModal(false);
-                }}
-                disabled={!newUser.name || !newUser.phone || !newUser.password}
+                onClick={handleAddUser}
+                disabled={!newUser.name.trim() || !newUser.phone.trim() || !newUser.password.trim()}
               >
                 <PlusIcon className="h-5 w-5 mr-1" />
-                Qo‘shish
+                Qo'shish
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 };

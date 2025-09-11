@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Trash2, Edit3, PlusCircle, Check, X, Search } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export default function Category() {
   const [categories, setCategories] = useState([]);
@@ -15,37 +17,81 @@ export default function Category() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  const navigate = useNavigate()
   // Demo ma'lumotlarni yuklash
   useEffect(() => {
-    setCategories([
-      { id: 1, name: "Kvartira", createdAt: "2023-01-10" },
-      { id: 2, name: "Xususiy uy", createdAt: "2023-01-15" },
-      { id: 3, name: "Ofis", createdAt: "2023-02-01" },
-      { id: 4, name: "Hostel", createdAt: "2023-02-02" },
-      { id: 5, name: "Vila", createdAt: "2023-02-03" },
-      { id: 6, name: "Dacha", createdAt: "2023-02-04" },
-    ]);
+    axios.get('http://localhost:3000/categories')
+      .then(res => {
+        setCategories(res.data);
+      })
+      .catch(err => console.error(err));
+    // setCategories([
+    //   { id: 1, name: "Kvartira", createdAt: "2023-01-10" },
+    //   { id: 2, name: "Xususiy uy", createdAt: "2023-01-15" },
+    //   { id: 3, name: "Ofis", createdAt: "2023-02-01" },
+    //   { id: 4, name: "Hostel", createdAt: "2023-02-02" },
+    //   { id: 5, name: "Vila", createdAt: "2023-02-03" },
+    //   { id: 6, name: "Dacha", createdAt: "2023-02-04" },
+    // ]);
   }, []);
 
   // ➕ Yangi kategoriya qo‘shish
-  const handleAddCategory = () => {
+
+  const handleAddCategory = async () => {
     if (!newCategory.trim()) return;
-    const newCat = {
-      id: Date.now(),
-      name: newCategory.trim(),
-      createdAt: new Date().toISOString().slice(0, 10),
-    };
-    setCategories((prev) => [...prev, newCat]);
-    setNewCategory("");
-    setShowModal(false);
-    setCurrentPage(Math.ceil((categories.length + 1) / itemsPerPage));
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        navigate('/login')
+        return
+      }
+      const response = await axios.post(
+        "http://localhost:3000/categories",
+        { name: newCategory.trim() },
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const newCatFromServer = response.data;
+
+      setCategories((prev) => [...prev, newCatFromServer]);
+      setNewCategory("");
+      setShowModal(false);
+      setCurrentPage(Math.ceil((categories.length + 1) / itemsPerPage));
+
+    } catch (error) {
+      console.error(error);
+      alert("Category qo'shilmadi");
+    }
   };
 
-  // ❌ O‘chirish
-  const handleDelete = (id) => {
-    setCategories(categories.filter((cat) => cat.id !== id));
-  };
 
+
+  const handleDelete = async (id) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        navigate('/login')
+        return
+      }
+      await axios.delete(`http://localhost:3000/categories/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      setCategories((prev) => prev.filter((cat) => cat.id !== id));
+
+    } catch (error) {
+      console.error(error);
+      alert("Category o'chirilmadi");
+    }
+  };
   // ✏️ Tahrirlashni boshlash
   const handleEditStart = (cat) => {
     setEditCategory(cat.id);
@@ -53,14 +99,40 @@ export default function Category() {
   };
 
   // 💾 Saqlash
-  const handleEditSave = (id) => {
-    setCategories(
-      categories.map((cat) =>
-        cat.id === id ? { ...cat, name: editValue } : cat
-      )
-    );
-    setEditCategory(null);
-    setEditValue("");
+  const handleEditSave = async (id) => {
+    if (!editValue.trim()) return;
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        navigate('/login')
+        return
+      }
+      const response = await axios.put(
+        `http://localhost:3000/categories/${id}`,
+        { name: editValue.trim() },
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const updatedCategory = response.data;
+
+      // Frontend state-ni yangilaymiz
+      setCategories((prev) =>
+        prev.map((cat) => (cat.id === id ? updatedCategory : cat))
+      );
+
+      setEditCategory(null);
+      setEditValue("");
+
+    } catch (error) {
+      console.error(error);
+      alert("Category tahrirlanmadi");
+    }
   };
 
   // Qidiruv

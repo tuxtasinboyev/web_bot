@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 
 import UsersTab from './usersTabs';
+import HomePage from './OwnerHomePage';
+import Profile from './profile';
+import Category from './Category';
+import Dashboard from './Dashboard';
+
 import {
   User as UserIcon,
   Home as HomeIcon,
   BarChart as ChartIcon,
   LogOut as LogoutIcon,
 } from 'lucide-react';
-import HomePage from './OwnerHomePage';
-import Profile from './profile';
-import Category from './Category';
-import Dashboard from './Dashboard';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -21,55 +23,54 @@ const AdminDashboard = () => {
   const [profile, setProfile] = useState({});
   const navigate = useNavigate();
 
-  // Demo ma’lumotlar
+  // Backend'dan barcha ma'lumotlarni olish
   useEffect(() => {
-    setUsers([
-      { id: 1, name: "Azizbek Olimov", phone: "+998901234567", role: "ADMIN" },
-      { id: 2, name: "Nigora Xasanova", phone: "+998901234568", role: "OWNER" },
-      { id: 3, name: "Javohir Abdullayev", phone: "+998901234569", role: "TENANT" },
-    ]);
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
-    setHouses([
-      { id: 1, title: "Yangi kvartira", ownerId: 2, categoryId: 1 },
-      { id: 2, title: "Hamkorlikdagi uy", ownerId: 4, categoryId: 2 },
-    ]);
+    const fetchData = async () => {
+      try {
+        const [usersRes, housesRes, categoriesRes, profileRes] = await Promise.all([
+          axios.get('http://localhost:3000/users', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('http://localhost:3000/houses', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('http://localhost:3000/categories', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('http://localhost:3000/users/me', { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
 
-    setCategories([
-      { id: 1, name: "Kvartira" },
-      { id: 2, name: "Xususiy uy" },
-      { id: 3, name: "Ofis" },
-    ]);
+        setUsers(usersRes.data.users);
+        setHouses(housesRes.data.data.houses);
+        setCategories(categoriesRes.data);
+        setProfile(profileRes.data.user);
+      } catch (error) {
+        console.error('Fetch error:', error);
+        navigate('/login');
+      }
+    };
 
-    setProfile({
-      id: 1,
-      name: "Azizbek Olimov",
-      phone: "+998901234567",
-      role: "ADMIN",
-      image: "",
-    });
-  }, []);
+    fetchData();
 
-  // Telegram WebApp setup
-  useEffect(() => {
+    // Telegram WebApp setup
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
     }
-  }, []);
+  }, [navigate]);
 
   // Logout
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("accessToken");
 
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.close(); // WebAppni yopish
+      window.Telegram.WebApp.close();
     } else {
       navigate("/login");
     }
   };
 
-  // Kontentni render qilish
+  // Kontent render
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <div className="min-h-[350px]"><Dashboard users={users} houses={houses} categories={categories} /></div>;
@@ -81,7 +82,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // Pastki navbar itemlari
+  // Footer menu
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <HomeIcon size={20} /> },
     { id: 'users', label: 'Foydalanuvchilar', icon: <UserIcon size={20} /> },
@@ -113,16 +114,15 @@ const AdminDashboard = () => {
         {renderContent()}
       </main>
 
-      {/* Footer (Telegram WebApp style) */}
+      {/* Footer */}
       <footer className="bg-white shadow-t fixed bottom-0 w-full z-10">
         <div className="grid grid-cols-6 gap-1">
           {menuItems.map(tab => (
             <button
               key={tab.id}
               onClick={() => tab.logout ? handleLogout() : setActiveTab(tab.id)}
-              className={`flex flex-col items-center py-2 text-xs ${
-                activeTab === tab.id ? "text-blue-600 bg-blue-50" : tab.logout ? "text-red-600" : "text-gray-600"
-              }`}
+              className={`flex flex-col items-center py-2 text-xs ${activeTab === tab.id ? "text-blue-600 bg-blue-50" : tab.logout ? "text-red-600" : "text-gray-600"
+                }`}
             >
               {tab.icon}
               <span className="mt-1">{tab.label}</span>
