@@ -41,9 +41,9 @@ const AdminDashboard = () => {
         ]);
 
         setUsers(usersRes.data.users);
-        setHouses(housesRes.data.data.houses);
+        setHouses(housesRes.data.data);
         setCategories(categoriesRes.data);
-        setProfile(profileRes.data.user);
+        setProfile(profileRes.data);
       } catch (error) {
         console.error('Fetch error:', error);
         navigate('/login');
@@ -98,8 +98,8 @@ const AdminDashboard = () => {
       <header className="sticky top-0 z-50 bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
         <div className="flex items-center gap-2">
-          {profile.image ? (
-            <img src={profile.image} alt="profile" className="w-8 h-8 rounded-full" />
+          {profile.imgUrl ? (
+            <img src={profile.imgUrl} alt="profile" className="w-8 h-8 rounded-full" />
           ) : (
             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
               <UserIcon size={16} className="text-gray-500" />

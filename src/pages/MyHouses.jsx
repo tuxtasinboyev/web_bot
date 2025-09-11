@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { MapPin, Bed, X, ChevronLeft, ChevronRight, Maximize, Edit, Trash2, Plus, Save, Upload } from "lucide-react"
+import { TextField } from "@mui/material"
+import axios from "axios"
 
 export default function MyHouses() {
   const [selectedHouse, setSelectedHouse] = useState(null)
@@ -146,11 +148,15 @@ export default function MyHouses() {
 
   const handleEditHouse = (e) => {
     const { name, value } = e.target
+    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId"]
+
     setEditingHouse({
       ...editingHouse,
-      [name]: value,
+      [name]: numberFields.includes(name) && value !== "" ? Number(value) : value,
     })
   }
+
+
 
   const handleSaveEdit = async () => {
     try {
@@ -300,8 +306,9 @@ export default function MyHouses() {
     document.body.style.overflow = "auto"
   }
 
+
   const handleAddHouseSave = async () => {
-    // Validate required fields
+    // 1️⃣ Majburiy maydonlarni tekshiramiz
     if (
       !newHouse.title ||
       !newHouse.price ||
@@ -311,64 +318,72 @@ export default function MyHouses() {
       !newHouse.categoryId ||
       !newHouse.description
     ) {
-      alert("Iltimos, barcha majburiy maydonlarni to'ldiring!")
-      return
+      alert("Iltimos, barcha majburiy maydonlarni to‘ldiring!");
+      return;
     }
 
-    // Validate minimum 3 images
+    // 2️⃣ Rasm sonini tekshiramiz
     if (newImages.length < 3) {
-      alert("Kamida 3 ta rasm yuklash kerak!")
-      return
+      alert("Kamida 3 ta rasm yuklash kerak!");
+      return;
     }
 
     try {
-      const token = getAuthToken()
+      const token = getAuthToken();
       if (!token) {
-        alert("Access token topilmadi")
-        return
+        alert("Access token topilmadi");
+        return;
       }
 
-      const formData = new FormData()
-      formData.append("title", newHouse.title)
-      formData.append("price", newHouse.price.toString())
-      formData.append("rooms", newHouse.rooms.toString())
-      formData.append("area", newHouse.area.toString())
-      formData.append("address", newHouse.address)
-      formData.append("categoryId", newHouse.categoryId.toString())
-      formData.append("description", newHouse.description)
+      // 3️⃣ FormData tayyorlaymiz
+      const formData = new FormData();
+      formData.append("title", newHouse.title);
+      formData.append("price", Number(newHouse.price).toString());
+      formData.append("rooms", Number(newHouse.rooms).toString());
+      formData.append("area", Number(newHouse.area).toString());
+      formData.append("address", newHouse.address);
+      formData.append("categoryId", Number(newHouse.categoryId).toString());
+      formData.append("description", newHouse.description);
 
-      if (newHouse.floor) formData.append("floor", newHouse.floor.toString())
-      if (newHouse.allFloor) formData.append("allFloor", newHouse.allFloor.toString())
+      if (newHouse.floor)
+        formData.append("floor", Number(newHouse.floor).toString());
+      if (newHouse.allFloor)
+        formData.append("allFloor", Number(newHouse.allFloor).toString());
 
-      // Add images
-      newImages.forEach((image) => {
-        formData.append("images", image)
-      })
+      // 4️⃣ Rasmlarni qo‘shamiz
+      newImages.forEach((image) => formData.append("images", image));
 
-      const response = await fetch(`${API_BASE_URL}/houses`, {
-        method: "POST",
+      // 5️⃣ Axios orqali so‘rov yuboramiz
+      const response = await axios.post(`${API_BASE_URL}/houses`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
-      })
+      });
 
-      if (!response.ok) throw new Error("Failed to create house")
+      console.log("Server javobi:", response.data);
 
-      // Refresh houses list
-      await fetchMyHouses()
-      closeAddHouseModal()
-      alert("Uy muvaffaqiyatli qo'shildi!")
+      // 6️⃣ Uyni qo‘shgandan keyin ro‘yxatni yangilaymiz
+      await fetchMyHouses();
+      closeAddHouseModal();
+      alert("Uy muvaffaqiyatli qo‘shildi!");
     } catch (error) {
-      console.error("Error creating house:", error)
-      alert("Uy qo'shishda xatolik yuz berdi")
+      alert("Uy qo‘shishda xatolik yuz berdi");
     }
-  }
+  };
+
 
   const handleNewHouseChange = (e) => {
     const { name, value } = e.target
-    setNewHouse({ ...newHouse, [name]: value })
+    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId"]
+
+    setNewHouse({
+      ...newHouse,
+      [name]: numberFields.includes(name) && value !== "" ? Number(value) : value,
+    })
   }
+
+
 
   if (loading) {
     return (
@@ -537,9 +552,8 @@ export default function MyHouses() {
                         <button
                           key={index}
                           onClick={() => setActiveImageIndex(index)}
-                          className={`w-2 h-2 rounded-full ${
-                            index === activeImageIndex ? "bg-white" : "bg-white bg-opacity-50"
-                          }`}
+                          className={`w-2 h-2 rounded-full ${index === activeImageIndex ? "bg-white" : "bg-white bg-opacity-50"
+                            }`}
                         />
                       ))}
                     </div>
@@ -855,9 +869,8 @@ export default function MyHouses() {
                               <button
                                 key={index}
                                 onClick={() => setActiveImageIndex(index)}
-                                className={`w-2 h-2 rounded-full ${
-                                  index === activeImageIndex ? "bg-white" : "bg-white bg-opacity-50"
-                                }`}
+                                className={`w-2 h-2 rounded-full ${index === activeImageIndex ? "bg-white" : "bg-white bg-opacity-50"
+                                  }`}
                               />
                             ))}
                           </div>
@@ -884,16 +897,18 @@ export default function MyHouses() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <input
+              <TextField
                 type="text"
                 name="title"
+                label="Nomi"
                 value={newHouse.title}
                 onChange={handleNewHouseChange}
                 placeholder="Uy nomi *"
                 className="w-full px-4 py-2 border rounded-md"
                 required
               />
-              <input
+              <TextField
+                label="Narxi"
                 type="number"
                 name="price"
                 value={newHouse.price}

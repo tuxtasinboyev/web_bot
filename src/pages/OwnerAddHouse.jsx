@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { Save, Trash2, Upload } from "lucide-react"
 import axios from "axios"
+import { TextField } from "@mui/material"
+
 
 export default function AddHouse({ onAddHouse }) {
   const [houseData, setHouseData] = useState({
@@ -29,7 +31,7 @@ export default function AddHouse({ onAddHouse }) {
         setCategoriesLoading(true)
 
         const response = await axios.get("http://localhost:3000/categories")
-        
+
         setCategories(response.data)
 
       } catch (error) {
@@ -96,7 +98,7 @@ export default function AddHouse({ onAddHouse }) {
       formData.append("floor", houseData.floor.toString())
       formData.append("allFloor", houseData.allFloor.toString())
       formData.append("area", houseData.area.toString())
-      formData.append("categoryId", +(houseData.categoryId))
+      formData.append("categoryId", houseData.categoryId)
       formData.append("description", houseData.description)
       formData.append("price", +houseData.price)
 
@@ -159,15 +161,15 @@ export default function AddHouse({ onAddHouse }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col">
-          <label className="text-gray-700 font-medium mb-2">Nomi *</label>
-          <input
+          <TextField className={`${inputClass("title")}`}
+            label="Nomi"
             type="text"
             name="title"
             value={houseData.title}
             onChange={handleInputChange}
             placeholder="Masalan: Qora Qush uy"
-            className={inputClass("title")}
-          />
+          >
+          </TextField>
           {errors.title && <span className="text-red-500 text-sm mt-1">{errors.title}</span>}
         </div>
 
