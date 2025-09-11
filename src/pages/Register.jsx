@@ -142,21 +142,6 @@ export default function Register({ onSuccess }) {
         </div>
         {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
 
-        {/* imgUrl */}
-        <div className="flex items-center gap-3 border rounded-xl p-3 focus-within:ring-2 focus-within:ring-blue-400 transition">
-          <Image size={24} className="text-gray-400" />
-          <input
-            name="imgUrl"
-            value={form.imgUrl}
-            onChange={handleChange}
-            placeholder="Profil rasmi URL (ixtiyoriy)"
-            className="w-full outline-none text-gray-700 placeholder-gray-400"
-          />
-        </div>
-        {errors.imgUrl && (
-          <p className="text-red-500 text-sm">{errors.imgUrl}</p>
-        )}
-
         <button
           type="submit"
           disabled={loading}
