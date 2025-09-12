@@ -102,9 +102,9 @@ const UsersTab = () => {
             formData.append(key, selectedUser[key]);
           }
         });
-        
+
         res = await axios.put(
-          `https://houzing.botify.uz/users/${selectedUser.id}`,
+          `https://houzing.botify.uz/users/${parseInt(selectedUser.id)}`,
           formData,
           { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
         );
@@ -117,7 +117,7 @@ const UsersTab = () => {
         if (selectedUser.password?.trim()) userData.password = selectedUser.password;
 
         res = await axios.put(
-          `https://houzing.botify.uz/users/${selectedUser.id}`,
+          `https://houzing.botify.uz/users/${parseInt(selectedUser.id)}`,
           userData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -141,7 +141,7 @@ const UsersTab = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`https://houzing.botify.uz/users/${selectedUser.id}`, {
+      await axios.delete(`https://houzing.botify.uz/users/${parseInt(selectedUser.id)}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // To'g'ridan-to'g'ri state yangilash o'rniga, foydalanuvchilarni qayta yuklash
@@ -157,7 +157,7 @@ const UsersTab = () => {
   // TO'G'IRLANGAN: Yangi foydalanuvchi ma'lumotlarini o'zgartirish
   const handleNewUserChange = (e) => {
     const { name, value, files, type } = e.target;
-    
+
     if (type === 'file') {
       const file = files?.[0];
       if (file) {
@@ -168,9 +168,9 @@ const UsersTab = () => {
         }));
       }
     } else {
-      setNewUser(prev => ({ 
-        ...prev, 
-        [name]: value 
+      setNewUser(prev => ({
+        ...prev,
+        [name]: value
       }));
     }
   };
@@ -185,46 +185,46 @@ const UsersTab = () => {
 
     try {
       const formData = new FormData();
-      
+
       // Asosiy ma'lumotlarni qo'shish
       formData.append('name', newUser.name.trim());
       formData.append('phone', newUser.phone.trim());
       formData.append('password', newUser.password);
       formData.append('role', newUser.role);
-      
+
       // Agar fayl tanlangan bo'lsa, uni qo'shish
       if (newUser.file) {
         formData.append('imgUrl', newUser.file);
       }
 
       const response = await axios.post('https://houzing.botify.uz/users', formData, {
-        headers: { 
-          Authorization: `Bearer ${token}`, 
-          'Content-Type': 'multipart/form-data' 
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
         }
       });
 
       // MUAMMO HAL QILINDI: Response ichidan yangi user ma'lumotlarini olish va ro'yxatga qo'shish
       const newUserData = response.data.data || response.data;
-      
+
       // Eski ro'yxatga yangi userni qo'shish (oxirgi elementga emas, boshiga qo'shish)
       setUsers(prevUsers => [newUserData, ...prevUsers]);
       setFilteredUsers(prevUsers => [newUserData, ...prevUsers]);
       setTotal(prevTotal => prevTotal + 1);
-      
+
       // Formani tozalash
-      setNewUser({ 
-        name: '', 
-        phone: '', 
-        password: '', 
-        role: 'TENANT', 
-        imgUrl: '', 
-        file: null 
+      setNewUser({
+        name: '',
+        phone: '',
+        password: '',
+        role: 'TENANT',
+        imgUrl: '',
+        file: null
       });
-      
+
       setShowAddModal(false);
       alert('Foydalanuvchi muvaffaqiyatli qo\'shildi!');
-      
+
     } catch (error) {
       console.error('Foydalanuvchi qo\'shishda xatolik:', error);
       const errorMessage = error.response?.data?.message || error.message;
