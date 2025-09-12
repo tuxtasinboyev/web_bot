@@ -884,157 +884,162 @@ export default function MyHouses() {
           )}
         </>
       )}
+{isAddingHouse && (
+  <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-auto">
+    <div className="bg-white rounded-lg max-w-4xl w-full p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Yangi Uy Qo'shish</h2>
+        <button onClick={closeAddHouseModal} className="p-1 rounded-full hover:bg-gray-200">
+          <X size={24} />
+        </button>
+      </div>
 
-      {/* Yangi uy qo'shish modal oynasi */}
-      {isAddingHouse && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-auto">
-          <div className="bg-white rounded-lg max-w-4xl w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Yangi Uy Qo'shish</h2>
-              <button onClick={closeAddHouseModal} className="p-1 rounded-full hover:bg-gray-200">
-                <X size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <TextField
+          type="text"
+          name="title"
+          label="Nomi *"
+          value={newHouse.title}
+          onChange={handleNewHouseChange}
+          fullWidth
+          required
+        />
+        <TextField
+          type="number"
+          name="price"
+          label="Narxi ($) *"
+          value={newHouse.price}
+          onChange={handleNewHouseChange}
+          fullWidth
+          required
+        />
+        <TextField
+          type="number"
+          name="rooms"
+          label="Xonalar soni *"
+          value={newHouse.rooms}
+          onChange={handleNewHouseChange}
+          fullWidth
+          required
+        />
+        <TextField
+          type="number"
+          name="area"
+          label="Maydoni (m²) *"
+          value={newHouse.area}
+          onChange={handleNewHouseChange}
+          fullWidth
+          required
+        />
+        <TextField
+          type="text"
+          name="address"
+          label="Manzil *"
+          value={newHouse.address}
+          onChange={handleNewHouseChange}
+          fullWidth
+          required
+        />
+        <select
+          name="categoryId"
+          value={newHouse.categoryId}
+          onChange={handleNewHouseChange}
+          className="w-full px-4 py-2 border rounded-md"
+          required
+        >
+          <option value="">Kategoriyani tanlang *</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        <TextField
+          type="number"
+          name="floor"
+          label="Qavat (ixtiyoriy)"
+          value={newHouse.floor}
+          onChange={handleNewHouseChange}
+          fullWidth
+        />
+        <TextField
+          type="number"
+          name="allFloor"
+          label="Umumiy qavatlar (ixtiyoriy)"
+          value={newHouse.allFloor}
+          onChange={handleNewHouseChange}
+          fullWidth
+        />
+      </div>
+
+      <TextField
+        name="description"
+        label="Tavsif *"
+        value={newHouse.description}
+        onChange={handleNewHouseChange}
+        fullWidth
+        multiline
+        rows={4}
+        required
+      />
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Rasmlar (kamida 3 ta) *
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          {newHouse.images.map((img, idx) => (
+            <div key={idx} className="relative">
+              <img
+                src={img || "/placeholder.svg"}
+                alt=""
+                className="w-full h-24 object-cover rounded-md"
+              />
+              <button
+                onClick={() => removeImage(idx, true)}
+                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+              >
+                <X size={14} />
               </button>
             </div>
+          ))}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <TextField
-                type="text"
-                name="title"
-                label="Nomi"
-                value={newHouse.title}
-                onChange={handleNewHouseChange}
-                placeholder="Uy nomi *"
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <TextField
-                label="Narxi"
-                type="number"
-                name="price"
-                value={newHouse.price}
-                onChange={handleNewHouseChange}
-                placeholder="Narxi ($) *"
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <input
-                type="number"
-                name="rooms"
-                value={newHouse.rooms}
-                onChange={handleNewHouseChange}
-                placeholder="Xonalar soni *"
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <input
-                type="number"
-                step="0.01"
-                name="area"
-                value={newHouse.area}
-                onChange={handleNewHouseChange}
-                placeholder="Maydoni (m²) *"
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <input
-                type="text"
-                name="address"
-                value={newHouse.address}
-                onChange={handleNewHouseChange}
-                placeholder="Manzil *"
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              />
-              <select
-                name="categoryId"
-                value={newHouse.categoryId}
-                onChange={handleNewHouseChange}
-                className="w-full px-4 py-2 border rounded-md"
-                required
-              >
-                <option value="">Kategoriyani tanlang *</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="number"
-                name="floor"
-                value={newHouse.floor}
-                onChange={handleNewHouseChange}
-                placeholder="Qavat (ixtiyoriy)"
-                className="w-full px-4 py-2 border rounded-md"
-              />
-              <input
-                type="number"
-                name="allFloor"
-                value={newHouse.allFloor}
-                onChange={handleNewHouseChange}
-                placeholder="Umumiy qavatlar (ixtiyoriy)"
-                className="w-full px-4 py-2 border rounded-md"
-              />
-            </div>
-
-            <textarea
-              name="description"
-              value={newHouse.description}
-              onChange={handleNewHouseChange}
-              placeholder="Tavsif *"
-              rows={4}
-              className="w-full px-4 py-2 border rounded-md mb-4"
-              required
+          <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer hover:border-blue-500">
+            <Upload size={24} className="text-gray-400 mb-1" />
+            <span className="text-sm text-gray-500">Rasm qo'shish</span>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => handleImageUpload(e, true)}
+              className="hidden"
             />
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Rasmlar (kamida 3 ta) *</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                {newHouse.images.map((img, idx) => (
-                  <div key={idx} className="relative">
-                    <img src={img || "/placeholder.svg"} alt="" className="w-full h-24 object-cover rounded-md" />
-                    <button
-                      onClick={() => removeImage(idx, true)}
-                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer hover:border-blue-500">
-                  <Upload size={24} className="text-gray-400 mb-1" />
-                  <span className="text-sm text-gray-500">Rasm qo'shish</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, true)}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <p className="text-sm text-gray-500">Yuklangan rasmlar: {newImages.length}/3 (minimum)</p>
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={closeAddHouseModal}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Bekor qilish
-              </button>
-              <button
-                onClick={handleAddHouseSave}
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
-              >
-                <Save size={18} className="mr-2" />
-                Saqlash
-              </button>
-            </div>
-          </div>
+          </label>
         </div>
-      )}
+        <p className="text-sm text-gray-500">
+          Yuklangan rasmlar: {newImages.length}/3 (minimum)
+        </p>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        <button
+          onClick={closeAddHouseModal}
+          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Bekor qilish
+        </button>
+        <button
+          onClick={handleAddHouseSave}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
+        >
+          <Save size={18} className="mr-2" />
+          Saqlash
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   )
 }

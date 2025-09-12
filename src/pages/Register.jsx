@@ -55,7 +55,7 @@ export default function Register({ onSuccess }) {
       console.log("✅ Backenddan kelgan javob:", res.data);
       localStorage.setItem("accessToken", res.data.accessToken);
       alert("Ro‘yxatdan muvaffaqiyatli o‘tdingiz!");
-      if (onSuccess) onSuccess(form);
+      if (onSuccess) onSuccess(form.role);
       setForm({
         name: "",
         phone: "",

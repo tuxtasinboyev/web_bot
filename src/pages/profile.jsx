@@ -1,56 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Camera, Save } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile({ profileData, setProfileData }) {
     const [isEditing, setIsEditing] = useState(false);
+
+    // inputlar uchun local state
+    const [formData, setFormData] = useState({
+        name: "",
+        phone: "",
+        role: "OWNER",
+        image: "",
+    });
+
+    // rasm uchun
     const [tempImage, setTempImage] = useState(null);
-    const [tempImageFile, setTempImageFile] = useState(null); // asl File object
+    const [tempImageFile, setTempImageFile] = useState(null);
 
     const navigate = useNavigate();
 
-    // Inputlarni o'zgartirish
+    // profileData kelganda local state-ni to'ldirish
+    useEffect(() => {
+        if (profileData) {
+            setFormData({
+                name: profileData.name || "",
+                phone: profileData.phone || "",
+                role: profileData.role || "OWNER",
+                image: profileData.imgUrl || profileData.image || "",
+            });
+        }
+    }, [profileData]);
+
+    // inputlarni o'zgartirish
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setProfileData({
-            ...profileData,
-            [name]: value,
-        });
+        setFormData((p) => ({ ...p, [name]: value }));
     };
 
-    // Profil rasmni o'zgartirish
+    // profil rasmini o'zgartirish
     const handleImageChange = (e) => {
-        const file = e.target.files[0];
+        const file = e.target.files?.[0];
         if (file) {
-            setTempImage(URL.createObjectURL(file)); // frontendda vaqtincha ko‘rsatish
-            setTempImageFile(file); // backend-ga yuborish uchun asl File
+            setTempImage(URL.createObjectURL(file));
+            setTempImageFile(file);
         }
     };
 
-    // Profilni saqlash
+    // profilni saqlash
     const handleSaveProfile = async () => {
         try {
             const token = localStorage.getItem("accessToken");
             if (!token) {
-                navigate('/login');
+                // Agar token yo'q bo'lsa, faqat local state yangilang (telegram fallback)
+                setProfileData((prev) => ({
+                    ...prev,
+                    name: formData.name,
+                    phone: formData.phone,
+                    role: formData.role,
+                    imgUrl: tempImage || formData.image,
+                    image: tempImage || formData.image, // qo‘shildi
+                }));
+                setIsEditing(false);
+                setTempImage(null);
+                setTempImageFile(null);
+                alert("Profil lokalda yangilandi (serverga token yo'q)");
                 return;
             }
 
-            const formData = new FormData();
-
-            if (profileData.name) formData.append("name", profileData.name);
-            if (profileData.phone) formData.append("phone", profileData.phone);
-            if (profileData.password) formData.append("password", profileData.password);
-            if (profileData.role) formData.append("role", profileData.role);
-            if (tempImageFile) formData.append("image", tempImageFile);
+            const formDataToSend = new FormData();
+            formDataToSend.append("name", formData.name);
+            formDataToSend.append("phone", formData.phone);
+            formDataToSend.append("role", formData.role);
+            if (tempImageFile) formDataToSend.append("image", tempImageFile);
 
             const response = await axios.patch(
                 "https://houzing.botify.uz/users/me",
-                formData,
+                formDataToSend,
                 {
                     headers: {
-                        "Authorization": `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                         "Content-Type": "multipart/form-data",
                     },
                 }
@@ -58,13 +87,24 @@ export default function Profile({ profileData, setProfileData }) {
 
             const updatedUser = response.data;
 
-            setProfileData({
-                ...profileData,
-                name: updatedUser.name || profileData.name,
-                phone: updatedUser.phone || profileData.phone,
-                role: updatedUser.role || profileData.role,
-                image: updatedUser.imgUrl || profileData.image
-            });
+            // propsdagini ham yangilab qo‘yish
+            setProfileData((prev) => ({
+                ...prev,
+                name: updatedUser.name || formData.name,
+                phone: updatedUser.phone || formData.phone,
+                role: updatedUser.role || formData.role,
+                imgUrl: updatedUser.imgUrl || tempImage || formData.image,
+                image: updatedUser.imgUrl || tempImage || formData.image, // qo‘shildi
+            }));
+
+            // local state-ni ham yangilash
+            setFormData((p) => ({
+                ...p,
+                name: updatedUser.name || formData.name,
+                phone: updatedUser.phone || formData.phone,
+                role: updatedUser.role || formData.role,
+                image: updatedUser.imgUrl || tempImage || formData.image,
+            }));
 
             setIsEditing(false);
             setTempImage(null);
@@ -72,11 +112,10 @@ export default function Profile({ profileData, setProfileData }) {
 
             alert("Profil muvaffaqiyatli yangilandi!");
         } catch (error) {
-            console.error(error);
+            console.error("Profile save error:", error);
             alert("Profil saqlanmadi");
         }
     };
-
 
 
     return (
@@ -85,17 +124,15 @@ export default function Profile({ profileData, setProfileData }) {
             <div className="bg-white p-6 rounded-lg shadow">
                 <div className="flex items-center mb-6">
                     <div className="relative">
-                        <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
-                            {tempImage || profileData.image ? (
+                        <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
+                            {tempImage || formData.image ? (
                                 <img
-                                    src={tempImage || profileData.image}
+                                    src={tempImage || formData.image}
                                     alt="Profil rasmi"
                                     className="w-full h-full rounded-full object-cover"
                                 />
                             ) : (
-                                <span className="text-2xl text-blue-500">
-                                    {profileData.name ? profileData.name.charAt(0) : 'nimagap'}
-                                </span>
+                                <span className="text-2xl text-blue-500">{formData.name ? formData.name.charAt(0) : "?"}</span>
                             )}
                         </div>
 
@@ -112,7 +149,8 @@ export default function Profile({ profileData, setProfileData }) {
                     </div>
 
                     <div className="ml-6">
-                        <h3 className="text-xl font-semibold">{profileData.name}</h3>
+                        <h3 className="text-xl font-semibold">{formData.name}</h3>
+                        <p className="text-sm text-gray-500">{formData.phone}</p>
                     </div>
                 </div>
 
@@ -122,7 +160,7 @@ export default function Profile({ profileData, setProfileData }) {
                         <input
                             type="text"
                             name="name"
-                            value={profileData.name || ""} // default bo‘sh string
+                            value={formData.name}
                             onChange={handleInputChange}
                             disabled={!isEditing}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
@@ -134,7 +172,7 @@ export default function Profile({ profileData, setProfileData }) {
                         <input
                             type="tel"
                             name="phone"
-                            value={profileData.phone || ""} // default bo‘sh string
+                            value={formData.phone}
                             onChange={handleInputChange}
                             disabled={!isEditing}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
@@ -145,7 +183,7 @@ export default function Profile({ profileData, setProfileData }) {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                         <select
                             name="role"
-                            value={profileData.role || "admin"} // default admin
+                            value={formData.role}
                             onChange={handleInputChange}
                             disabled={!isEditing}
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
@@ -160,7 +198,18 @@ export default function Profile({ profileData, setProfileData }) {
                     {isEditing ? (
                         <>
                             <button
-                                onClick={() => setIsEditing(false)}
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    setTempImage(null);
+                                    setTempImageFile(null);
+                                    // reset form to props
+                                    setFormData({
+                                        name: profileData.name || "",
+                                        phone: profileData.phone || "",
+                                        role: profileData.role || "OWNER",
+                                        image: profileData.imgUrl || profileData.image || "",
+                                    });
+                                }}
                                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                             >
                                 Bekor qilish

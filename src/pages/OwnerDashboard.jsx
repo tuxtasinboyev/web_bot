@@ -13,6 +13,8 @@ export default function OwnerDashboard() {
   const [profileData, setProfileData] = useState({
     name: "",
     username: "",
+    phone: "",
+    role: "OWNER",
     image: "https://via.placeholder.com/150",
   });
   const [houses, setHouses] = useState([]);
@@ -20,47 +22,49 @@ export default function OwnerDashboard() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // Telegram WebApp ma'lumotlarini olish
+        const token = localStorage.getItem("accessToken");
+
+        // Telegram WebApp user (may be undefined)
         const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-        if (tgUser) {
-          setProfileData({
-            name: tgUser.first_name || "",
-            username: tgUser.username || "",
-            image: tgUser.photo_url || "https://via.placeholder.com/150",
-          });
-        } else {
-          // Backenddan profile ma'lumotlarini olish
-          const res = await axios.get("https://houzing.botify.uz/users/me", {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('accessToken')}`
-            }
-          });
 
-          // Backenddan user obyekti mavjudligini tekshirish
-          const user = res.data
-          if (!user) throw new Error("User data mavjud emas");
-
-          setProfileData({
-            name: user.name || "Test User",
-            username: user.username || "testuser",
-            image: user.imgUrl || "https://via.placeholder.com/150",
-          });
+        // Backend user (may fail if no token)
+        let userFromBackend = null;
+        if (token) {
+          try {
+            const res = await axios.get("https://houzing.botify.uz/users/me", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            userFromBackend = res.data;
+          } catch (err) {
+            // agar 401 yoki boshqasi bo'lsa, backendga kira olmadik
+            console.warn("Backend /users/me not available or unauthorized:", err?.response?.status);
+          }
         }
+
+        // Birlashtirish: backend ustun, telegram fallback
+        const merged = {
+          name: userFromBackend?.name || tgUser?.first_name || "Foydalanuvchi",
+          username: userFromBackend?.username || tgUser?.username || "",
+          phone: userFromBackend?.phone || "",
+          role: userFromBackend?.role || "OWNER",
+          image: (userFromBackend?.imgUrl || userFromBackend?.image) || tgUser?.photo_url || "https://via.placeholder.com/150",
+        };
+
+        setProfileData(merged);
       } catch (err) {
         console.error("Profile olishda xato:", err);
+        // Agar token yo'q yoki xatolik bo'lsa, fallback to telegram or defaults
+        const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+        setProfileData({
+          name: tgUser?.first_name || "Foydalanuvchi",
+          username: tgUser?.username || "",
+          phone: "",
+          role: "OWNER",
+          image: tgUser?.photo_url || "https://via.placeholder.com/150",
+        });
 
-        // 401 Unauthorized bo‘lsa, login sahifasiga yo‘naltirish
-        if (err.response?.status === 404) {
-          alert("Siz tizimga kirishingiz kerak!");
-          navigate("/login");
-        } else {
-          // Boshqa xatolar uchun fallback
-          setProfileData({
-            name: "Test User",
-            username: "testuser",
-            image: "https://via.placeholder.com/150",
-          });
-        }
+        // agar 401 yoki boshqa sabab bilan loginga qaytarmoqchi bo'lsangiz:
+        // navigate('/login');
       }
     };
 
@@ -71,10 +75,11 @@ export default function OwnerDashboard() {
     { id: "home", label: "Bosh sahifa", icon: <Home size={22} /> },
     { id: "my", label: "Mening uylarim", icon: <ClipboardList size={22} /> },
     { id: "profile", label: "Profil", icon: <User size={22} /> },
+    // add button handled separately
   ];
 
   const handleAddHouse = (newHouse) => {
-    setHouses([...houses, newHouse]);
+    setHouses((prev) => [...prev, newHouse]);
     setActive("my");
   };
 
@@ -99,7 +104,7 @@ export default function OwnerDashboard() {
       <header className="bg-white shadow p-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-blue-600">IJARA.uz</h1>
         <div className="flex items-center space-x-2">
-          <img src={profileData.image} className="w-10 h-10 rounded-full" />
+          <img src={profileData.image} alt="profile" className="w-10 h-10 rounded-full object-cover" />
           <span className="text-sm font-medium">{profileData.name}</span>
         </div>
       </header>
@@ -120,6 +125,7 @@ export default function OwnerDashboard() {
               <span className="text-xs mt-1">{tab.label}</span>
             </button>
           ))}
+
           <button
             onClick={() => setActive("add")}
             className={`flex flex-col items-center py-3 ${active === "add" ? "text-blue-600" : "text-gray-600"}`}

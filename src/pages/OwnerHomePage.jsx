@@ -26,7 +26,7 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [houses, setHouses] = useState([]);
-  
+
   useEffect(() => {
     axios.get("https://houzing.botify.uz/houses")
       .then(res => {
@@ -126,9 +126,18 @@ export default function HomePage() {
               <div className="pt-3 border-t border-gray-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full overflow-hidden mr-2 flex items-center justify-center">
-                      <User size={16} className="text-gray-600" />
+                    <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
+                      {house.owner?.image ? (
+                        <img
+                          src={house.owner.image}
+                          alt={house.owner.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User size={16} className="text-gray-600" />
+                      )}
                     </div>
+
                     <div>
                       <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
                     </div>
@@ -169,8 +178,8 @@ export default function HomePage() {
             <div className="relative">
               <div className="h-80 overflow-hidden">
                 <img
-                  src={selectedHouse.images && selectedHouse.images[activeImageIndex] 
-                    ? selectedHouse.images[activeImageIndex] 
+                  src={selectedHouse.images && selectedHouse.images[activeImageIndex]
+                    ? selectedHouse.images[activeImageIndex]
                     : "/placeholder-house.jpg"}
                   alt={selectedHouse.title}
                   className="w-full h-full object-cover cursor-pointer"
@@ -308,8 +317,8 @@ export default function HomePage() {
 
             <div className="h-full overflow-hidden">
               <img
-                src={selectedHouse.images && selectedHouse.images[activeImageIndex] 
-                  ? selectedHouse.images[activeImageIndex] 
+                src={selectedHouse.images && selectedHouse.images[activeImageIndex]
+                  ? selectedHouse.images[activeImageIndex]
                   : "/placeholder-house.jpg"}
                 alt={selectedHouse.title}
                 className="w-full h-full object-contain max-h-[80vh]"

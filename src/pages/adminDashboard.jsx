@@ -59,16 +59,6 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  // Logout
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-
-    if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.close();
-    } else {
-      navigate("/login");
-    }
-  };
 
   // Kontent render
   const renderContent = () => {
@@ -89,7 +79,6 @@ const AdminDashboard = () => {
     { id: 'houses', label: 'Uylar', icon: <HomeIcon size={20} /> },
     { id: 'categories', label: 'Kategoriya', icon: <ChartIcon size={20} /> },
     { id: 'profile', label: 'Profil', icon: <UserIcon size={20} /> },
-    { id: 'logout', label: 'Chiqish', icon: <LogoutIcon size={20} />, logout: true },
   ];
 
   return (
@@ -116,12 +105,12 @@ const AdminDashboard = () => {
 
       {/* Footer */}
       <footer className="bg-white shadow-t fixed bottom-0 w-full z-10">
-        <div className="grid grid-cols-6 gap-1">
+        <div className="grid grid-cols-5 gap-1">
           {menuItems.map(tab => (
             <button
               key={tab.id}
-              onClick={() => tab.logout ? handleLogout() : setActiveTab(tab.id)}
-              className={`flex flex-col items-center py-2 text-xs ${activeTab === tab.id ? "text-blue-600 bg-blue-50" : tab.logout ? "text-red-600" : "text-gray-600"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center py-2 text-xs ${activeTab === tab.id ? "text-blue-600 bg-blue-50" : "text-gray-600"
                 }`}
             >
               {tab.icon}
@@ -130,6 +119,7 @@ const AdminDashboard = () => {
           ))}
         </div>
       </footer>
+
     </div>
   );
 };

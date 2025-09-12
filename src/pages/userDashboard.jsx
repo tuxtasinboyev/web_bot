@@ -1,33 +1,54 @@
 import { useState, useEffect } from "react";
 import { Home, User } from "lucide-react";
+import axios from "axios";
 import HomePage from "./OwnerHomePage";
 import Profile from "./profile";
 
 export default function UserDashboard() {
     const [active, setActive] = useState("home");
     const [profileData, setProfileData] = useState({
-        name: "",
-        username: "",
-        image: "",
+        name: "Foydalanuvchi",
+        username: "unknown",
+        image: "https://via.placeholder.com/150",
     });
+    const [loadingProfile, setLoadingProfile] = useState(true);
 
     useEffect(() => {
+        const fetchProfileFromBackend = async () => {
+            try {
+                const response = await axios.get("https://houzing.botify.uz/users/me", {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                    },
+                });
+
+                if (response.data) {
+                    setProfileData({
+                        name: response.data.name || "Foydalanuvchi",
+                        username: response.data.username || "unknown",
+                        image: response.data.image || "https://via.placeholder.com/150",
+                    });
+                }
+            } catch (error) {
+                console.error("Backenddan profilni olishda xatolik:", error);
+            } finally {
+                setLoadingProfile(false);
+            }
+        };
+
+        // Agar Telegram WebApp ma’lumotlari mavjud bo‘lsa, ularni ustuvor qilish
         if (typeof window !== "undefined" && window.Telegram?.WebApp?.initDataUnsafe?.user) {
             const tgUser = window.Telegram.WebApp.initDataUnsafe.user;
             setProfileData({
-                name: tgUser.first_name || "",
-                username: tgUser.username || "",
+                name: tgUser.first_name || "Foydalanuvchi",
+                username: tgUser.username || "unknown",
                 image: tgUser.photo_url || "https://via.placeholder.com/150",
             });
+            setLoadingProfile(false);
         } else {
-            setProfileData({
-                name: "Foydalanuvchi",
-                username: "unknown",
-                image: "https://via.placeholder.com/150",
-            });
+            fetchProfileFromBackend();
         }
     }, []);
-
 
     const tabs = [
         { id: "home", label: "Bosh sahifa", icon: <Home size={22} /> },
@@ -39,7 +60,13 @@ export default function UserDashboard() {
             case "home":
                 return <HomePage />;
             case "profile":
-                return <Profile profileData={profileData} setProfileData={setProfileData} />;
+                return (
+                    <Profile
+                        profileData={profileData}
+                        setProfileData={setProfileData}
+                        loadingProfile={loadingProfile}
+                    />
+                );
             default:
                 return <HomePage />;
         }
@@ -47,18 +74,27 @@ export default function UserDashboard() {
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50">
-            {/* Telegram Web Appda o'zining headeri bor, shuning uchun oddiy title */}
+            {/* Header */}
             <header className="bg-white shadow p-4 flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-blue-600">IJARA.uz</h1>
                 <div className="flex items-center space-x-2">
-                    <img src={profileData.image} className="w-10 h-10 rounded-full" />
-                    <span className="text-sm font-medium">{profileData.name}</span>
+                    {loadingProfile ? (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse"></div>
+                    ) : (
+                        <img
+                            src={profileData.image}
+                            alt={profileData.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                        />
+                    )}
+                    <span className="text-sm font-medium">
+                        {loadingProfile ? "Yuklanmoqda..." : profileData.name}
+                    </span>
                 </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto p-4">
-                {renderContent()}
-            </main>
+            {/* Main content */}
+            <main className="flex-1 overflow-y-auto p-4">{renderContent()}</main>
 
             {/* Footer navigation */}
             <footer className="bg-white shadow-t fixed bottom-0 w-full">
@@ -67,7 +103,9 @@ export default function UserDashboard() {
                         <button
                             key={tab.id}
                             onClick={() => setActive(tab.id)}
-                            className={`flex flex-col items-center py-3 w-full ${active === tab.id ? "text-blue-600" : "text-gray-600"}`}
+                            className={`flex flex-col items-center py-3 w-full ${
+                                active === tab.id ? "text-blue-600" : "text-gray-600"
+                            }`}
                         >
                             {tab.icon}
                             <span className="text-xs mt-1">{tab.label}</span>
