@@ -30,7 +30,7 @@ export default function AddHouse({ onAddHouse }) {
       try {
         setCategoriesLoading(true)
 
-        const response = await axios.get("http://16.171.142.96:3000/categories")
+        const response = await axios.get("https://houzing.botify.uz/categories")
 
         setCategories(response.data)
 
@@ -108,7 +108,7 @@ export default function AddHouse({ onAddHouse }) {
         })
       }
 
-      const response = await axios.post("http://16.171.142.96:3000/houses", formData, {
+      const response = await axios.post("https://houzing.botify.uz/houses", formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
           "Content-Type": "multipart/form-data",

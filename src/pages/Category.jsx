@@ -20,7 +20,7 @@ export default function Category() {
   const navigate = useNavigate()
   // Demo ma'lumotlarni yuklash
   useEffect(() => {
-    axios.get('http://16.171.142.96:3000/categories')
+    axios.get('https://houzing.botify.uz/categories')
       .then(res => {
         setCategories(res.data);
       })
@@ -47,7 +47,7 @@ export default function Category() {
         return
       }
       const response = await axios.post(
-        "http://16.171.142.96:3000/categories",
+        "https://houzing.botify.uz/categories",
         { name: newCategory.trim() },
         {
           headers: {
@@ -79,7 +79,7 @@ export default function Category() {
         navigate('/login')
         return
       }
-      await axios.delete(`http://16.171.142.96:3000/categories/${id}`, {
+      await axios.delete(`https://houzing.botify.uz/categories/${id}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -109,7 +109,7 @@ export default function Category() {
         return
       }
       const response = await axios.put(
-        `http://16.171.142.96:3000/categories/${id}`,
+        `https://houzing.botify.uz/categories/${id}`,
         { name: editValue.trim() },
         {
           headers: {

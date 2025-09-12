@@ -39,7 +39,7 @@ export default function Login({ onSuccess }) {
     try {
       setLoading(true);
 
-      const res = await axios.post("http://16.171.142.96:3000/users/login", {
+      const res = await axios.post("https://houzing.botify.uz/users/login", {
         phone: form.phone,
         password: form.password,
       });

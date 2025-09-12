@@ -45,7 +45,7 @@ export default function Register({ onSuccess }) {
 
     try {
       setLoading(true);
-      const res = await axios.post("http://16.171.142.96:3000/users/register", {
+      const res = await axios.post("https://houzing.botify.uz/users/register", {
         name: form.name,
         phone: form.phone,
         password: form.password,

@@ -34,10 +34,10 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       try {
         const [usersRes, housesRes, categoriesRes, profileRes] = await Promise.all([
-          axios.get('http://16.171.142.96:3000/users', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://16.171.142.96:3000/houses', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://16.171.142.96:3000/categories', { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get('http://16.171.142.96:3000/users/me', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://houzing.botify.uz/users', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://houzing.botify.uz/houses', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://houzing.botify.uz/categories', { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get('https://houzing.botify.uz/users/me', { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         setUsers(usersRes.data.users);
