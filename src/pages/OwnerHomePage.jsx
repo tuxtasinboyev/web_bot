@@ -292,20 +292,13 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex space-x-2">
-                    {/* Modal ichidagi telefon tugmasi */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Bu yerda selectedHouse dan olamiz
-                        setSelectedPhone(selectedHouse.owner?.phone || "");
-                        setIsPhoneModalOpen(true);
-                      }}
-                      className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
-                      title="Telefon raqamini ko'rish"
+                    <a
+                      href={`tel:${selectedHouse.owner?.phone || ""}`}
+                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
-                      <Phone size={14} />
-                    </button>
-
+                      <Phone size={18} className="mr-2" />
+                      {selectedHouse.owner?.phone || "Telefon raqami yo'q"}
+                    </a>
                   </div>
                 </div>
               </div>
@@ -364,32 +357,6 @@ export default function HomePage() {
           </div>
         </div>
       )}
-      {/* Telefon modal oynasi */}
-      {isPhoneModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full text-center shadow-lg relative">
-            <button
-              onClick={() => setIsPhoneModalOpen(false)}
-              className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="text-lg font-semibold mb-4">Telefon raqami</h3>
-            <p className="text-2xl font-bold text-gray-800 mb-6">
-              {selectedPhone || "Telefon raqami yo'q"}
-            </p>
-            {selectedPhone && (
-              <a
-                href={`tel:${selectedPhone}`}
-                className="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-              >
-                <Phone size={18} className="mr-2" /> Qo'ng'iroq qilish
-              </a>
-            )}
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
