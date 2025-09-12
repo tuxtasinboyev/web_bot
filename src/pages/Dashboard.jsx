@@ -24,7 +24,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:3000/categories/statistika")
+      .get("http://16.171.142.96:3000/categories/statistika")
       .then((res) => {
         setStatsData(res.data);
         setLoading(false);

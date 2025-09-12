@@ -30,7 +30,7 @@ export default function OwnerDashboard() {
           });
         } else {
           // Backenddan profile ma'lumotlarini olish
-          const res = await axios.get("http://localhost:3000/users/me", {
+          const res = await axios.get("http://16.171.142.96:3000/users/me", {
             headers: {
               Authorization: `Bearer ${localStorage.getItem('accessToken')}`
             }

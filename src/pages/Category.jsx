@@ -20,7 +20,7 @@ export default function Category() {
   const navigate = useNavigate()
   // Demo ma'lumotlarni yuklash
   useEffect(() => {
-    axios.get('http://localhost:3000/categories')
+    axios.get('http://16.171.142.96:3000/categories')
       .then(res => {
         setCategories(res.data);
       })
@@ -47,7 +47,7 @@ export default function Category() {
         return
       }
       const response = await axios.post(
-        "http://localhost:3000/categories",
+        "http://16.171.142.96:3000/categories",
         { name: newCategory.trim() },
         {
           headers: {
@@ -79,7 +79,7 @@ export default function Category() {
         navigate('/login')
         return
       }
-      await axios.delete(`http://localhost:3000/categories/${id}`, {
+      await axios.delete(`http://16.171.142.96:3000/categories/${id}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -109,7 +109,7 @@ export default function Category() {
         return
       }
       const response = await axios.put(
-        `http://localhost:3000/categories/${id}`,
+        `http://16.171.142.96:3000/categories/${id}`,
         { name: editValue.trim() },
         {
           headers: {

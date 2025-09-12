@@ -28,7 +28,7 @@ export default function HomePage() {
   const [houses, setHouses] = useState([]);
   
   useEffect(() => {
-    axios.get("http://localhost:3000/houses")
+    axios.get("http://16.171.142.96:3000/houses")
       .then(res => {
         setHouses(res.data.data);
       })

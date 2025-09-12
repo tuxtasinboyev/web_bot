@@ -46,7 +46,7 @@ export default function Profile({ profileData, setProfileData }) {
             if (tempImageFile) formData.append("image", tempImageFile);
 
             const response = await axios.patch(
-                "http://localhost:3000/users/me",
+                "http://16.171.142.96:3000/users/me",
                 formData,
                 {
                     headers: {

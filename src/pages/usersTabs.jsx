@@ -37,7 +37,7 @@ const UsersTab = () => {
   // Foydalanuvchilarni olish
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:3000/users', {
+      const res = await axios.get('http://16.171.142.96:3000/users', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(res.data.users);
@@ -104,7 +104,7 @@ const UsersTab = () => {
         });
         
         res = await axios.put(
-          `http://localhost:3000/users/${selectedUser.id}`,
+          `http://16.171.142.96:3000/users/${selectedUser.id}`,
           formData,
           { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
         );
@@ -117,7 +117,7 @@ const UsersTab = () => {
         if (selectedUser.password?.trim()) userData.password = selectedUser.password;
 
         res = await axios.put(
-          `http://localhost:3000/users/${selectedUser.id}`,
+          `http://16.171.142.96:3000/users/${selectedUser.id}`,
           userData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -141,7 +141,7 @@ const UsersTab = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3000/users/${selectedUser.id}`, {
+      await axios.delete(`http://16.171.142.96:3000/users/${selectedUser.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // To'g'ridan-to'g'ri state yangilash o'rniga, foydalanuvchilarni qayta yuklash
@@ -197,7 +197,7 @@ const UsersTab = () => {
         formData.append('imgUrl', newUser.file);
       }
 
-      const response = await axios.post('http://localhost:3000/users', formData, {
+      const response = await axios.post('http://16.171.142.96:3000/users', formData, {
         headers: { 
           Authorization: `Bearer ${token}`, 
           'Content-Type': 'multipart/form-data' 

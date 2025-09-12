@@ -34,7 +34,7 @@ export default function MyHouses() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const API_BASE_URL = "http://localhost:3000"
+  const API_BASE_URL = "http://16.171.142.96:3000"
 
   const getAuthToken = () => {
     return localStorage.getItem("accessToken")
