@@ -292,10 +292,12 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex space-x-2">
+                    {/* Modal ichidagi telefon tugmasi */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedPhone(house.owner?.phone || "");
+                        // Bu yerda selectedHouse dan olamiz
+                        setSelectedPhone(selectedHouse.owner?.phone || "");
                         setIsPhoneModalOpen(true);
                       }}
                       className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
@@ -303,6 +305,7 @@ export default function HomePage() {
                     >
                       <Phone size={14} />
                     </button>
+
                   </div>
                 </div>
               </div>
