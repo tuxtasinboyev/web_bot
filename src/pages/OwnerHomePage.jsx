@@ -28,7 +28,7 @@ export default function HomePage() {
   const [houses, setHouses] = useState([]);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [selectedPhone, setSelectedPhone] = useState("");
-
+  const [selectedOwner, setSelectedOwner] = useState("");
 
   useEffect(() => {
     axios.get("https://houzing.botify.uz/houses")
@@ -73,6 +73,21 @@ export default function HomePage() {
         prevIndex === 0 ? selectedHouse.images.length - 1 : prevIndex - 1
       );
     }
+  };
+
+  // Telefon modalini ochish funksiyasi
+  const openPhoneModal = (phoneNumber, ownerName, e) => {
+    e.stopPropagation();
+    setSelectedPhone(phoneNumber);
+    setSelectedOwner(ownerName);
+    setIsPhoneModalOpen(true);
+  };
+
+  // Telefon modalini yopish funksiyasi
+  const closePhoneModal = () => {
+    setIsPhoneModalOpen(false);
+    setSelectedPhone("");
+    setSelectedOwner("");
   };
 
   return (
@@ -148,10 +163,10 @@ export default function HomePage() {
 
                   <div className="flex space-x-1">
                     <a
-                      href={`tel:${house.owner?.phone || ""}`}
+                      href="#"
                       className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
                       title="Qo'ng'iroq qilish"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
                     >
                       <Phone size={14} />
                     </a>
@@ -162,6 +177,44 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* Telefon raqami modal oynasi */}
+      {isPhoneModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">Telefon raqami</h3>
+              <button
+                onClick={closePhoneModal}
+                className="p-1 rounded-full hover:bg-gray-200"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Phone size={24} className="text-blue-600" />
+              </div>
+              
+              <h4 className="font-medium text-gray-800 mb-1">{selectedOwner}</h4>
+              <p className="text-xl font-bold text-blue-600 mb-6">{selectedPhone || "Telefon raqami mavjud emas"}</p>
+              
+              {selectedPhone && (
+                <div className="flex justify-center space-x-3">
+                  <a
+                    href={`tel:${selectedPhone}`}
+                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
+                  >
+                    <Phone size={18} className="mr-2" />
+                    Qo'ng'iroq qilish
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal oynasi */}
       {isModalOpen && selectedHouse && (
@@ -292,13 +345,13 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex space-x-2">
-                    <a
-                      href={`tel:${selectedHouse.owner?.phone || ""}`}
+                    <button
+                      onClick={(e) => openPhoneModal(selectedHouse.owner?.phone || "", selectedHouse.owner?.name || "", e)}
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
                       <Phone size={18} className="mr-2" />
-                      {selectedHouse.owner?.phone || "Telefon raqami yo'q"}
-                    </a>
+                      Telefon raqami
+                    </button>
                   </div>
                 </div>
               </div>
