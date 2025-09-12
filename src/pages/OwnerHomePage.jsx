@@ -77,7 +77,7 @@ export default function HomePage() {
 
   // Telefon modalini ochish funksiyasi
   const openPhoneModal = (phoneNumber, ownerName, e) => {
-    e.stopPropagation();
+    if (e) e.stopPropagation();
     setSelectedPhone(phoneNumber);
     setSelectedOwner(ownerName);
     setIsPhoneModalOpen(true);
@@ -162,14 +162,13 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex space-x-1">
-                    <a
-                      href="#"
+                    <button
                       className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
                       title="Qo'ng'iroq qilish"
                       onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
                     >
                       <Phone size={14} />
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -180,7 +179,7 @@ export default function HomePage() {
 
       {/* Telefon raqami modal oynasi */}
       {isPhoneModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-300 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-sm w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">Telefon raqami</h3>
@@ -346,7 +345,7 @@ export default function HomePage() {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={(e) => openPhoneModal(selectedHouse.owner?.phone || "", selectedHouse.owner?.name || "", e)}
+                      onClick={() => openPhoneModal(selectedHouse.owner?.phone || "", selectedHouse.owner?.name || "")}
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
                       <Phone size={18} className="mr-2" />
