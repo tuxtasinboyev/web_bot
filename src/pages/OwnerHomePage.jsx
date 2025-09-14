@@ -77,7 +77,7 @@ export default function HomePage() {
 
   // Telefon modalini ochish funksiyasi
   const openPhoneModal = (phoneNumber, ownerName, e) => {
-    if (e) e.stopPropagation();
+    if (e) e.stopPropagation(); // Bu event bubbling ni to'xtatadi
     setSelectedPhone(phoneNumber);
     setSelectedOwner(ownerName);
     setIsPhoneModalOpen(true);
@@ -177,9 +177,9 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Telefon raqami modal oynasi */}
+      {/* Telefon raqami modal oynasi - Z-indexni oshirish va joylashuvni markazga olish */}
       {isPhoneModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60] p-4">
           <div className="bg-white rounded-lg max-w-sm w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">Telefon raqami</h3>
@@ -204,6 +204,7 @@ export default function HomePage() {
                   <a
                     href={`tel:${selectedPhone}`}
                     className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Phone size={18} className="mr-2" />
                     Qo'ng'iroq qilish
@@ -345,7 +346,7 @@ export default function HomePage() {
 
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => openPhoneModal(selectedHouse.owner?.phone || "", selectedHouse.owner?.name || "")}
+                      onClick={(e) => openPhoneModal(selectedHouse.owner?.phone || "", selectedHouse.owner?.name || "", e)}
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
                       <Phone size={18} className="mr-2" />
