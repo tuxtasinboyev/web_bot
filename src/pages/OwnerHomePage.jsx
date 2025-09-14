@@ -350,7 +350,7 @@ export default function HomePage() {
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
                       <Phone size={18} className="mr-2" />
-                      Telefon raqami
+                      {selectedPhone}
                     </button>
                   </div>
                 </div>
