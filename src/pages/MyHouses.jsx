@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { MapPin, Bed, X, ChevronLeft, ChevronRight, Maximize, Edit, Trash2, Plus, Save, Upload } from "lucide-react"
-import { TextField } from "@mui/material"
 import axios from "axios"
+import TextField from '@mui/material/TextField';
+
 
 export default function MyHouses() {
   const [selectedHouse, setSelectedHouse] = useState(null)
@@ -29,9 +30,6 @@ export default function MyHouses() {
     images: [],
     durationDays: 5,
   });
-
-
-
 
   const [categories, setCategories] = useState([])
   const [myHouses, setMyHouses] = useState([])
@@ -154,14 +152,11 @@ export default function MyHouses() {
     const { name, value } = e.target
     const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId", "durationDays"];
 
-
     setEditingHouse({
       ...editingHouse,
       [name]: numberFields.includes(name) && value !== "" ? Number(value) : value,
     })
   }
-
-
 
   const handleSaveEdit = async () => {
     try {
@@ -172,10 +167,9 @@ export default function MyHouses() {
       }
 
       if (editingHouse.durationDays < 5 || editingHouse.durationDays > 20) {
-        alert("Uy amal qilish muddati 5 dan 20 kungacha bo‘lishi kerak!");
+        alert("Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!");
         return;
       }
-
 
       const formData = new FormData()
 
@@ -298,6 +292,7 @@ export default function MyHouses() {
       allFloor: "",
       categoryId: "",
       images: [],
+      durationDays: 5,
     })
     setNewImages([])
     document.body.style.overflow = "hidden"
@@ -316,11 +311,11 @@ export default function MyHouses() {
       allFloor: "",
       categoryId: "",
       images: [],
+      durationDays: 5,
     })
     setNewImages([])
     document.body.style.overflow = "auto"
   }
-
 
   const handleAddHouseSave = async () => {
     // 1️⃣ Majburiy maydonlarni tekshiramiz
@@ -332,9 +327,9 @@ export default function MyHouses() {
       !newHouse.address ||
       !newHouse.categoryId ||
       !newHouse.description ||
-      !newHouse.durationDays // <--- qo‘shildi
+      !newHouse.durationDays
     ) {
-      alert("Iltimos, barcha majburiy maydonlarni to‘ldiring!");
+      alert("Iltimos, barcha majburiy maydonlarni to'ldiring!");
       return;
     }
 
@@ -344,10 +339,9 @@ export default function MyHouses() {
       return;
     }
     if (newHouse.durationDays < 5 || newHouse.durationDays > 20) {
-      alert("Uy amal qilish muddati 5 dan 20 kungacha bo‘lishi kerak!");
+      alert("Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!");
       return;
     }
-
 
     try {
       const token = getAuthToken();
@@ -367,16 +361,15 @@ export default function MyHouses() {
       formData.append("description", newHouse.description);
       formData.append("durationDays", Number(newHouse.durationDays).toString());
 
-
       if (newHouse.floor)
         formData.append("floor", Number(newHouse.floor).toString());
       if (newHouse.allFloor)
         formData.append("allFloor", Number(newHouse.allFloor).toString());
 
-      // 4️⃣ Rasmlarni qo‘shamiz
+      // 4️⃣ Rasmlarni qo'shamiz
       newImages.forEach((image) => formData.append("images", image));
 
-      // 5️⃣ Axios orqali so‘rov yuboramiz
+      // 5️⃣ Axios orqali so'rov yuboramiz
       const response = await axios.post(`${API_BASE_URL}/houses`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -386,15 +379,14 @@ export default function MyHouses() {
 
       console.log("Server javobi:", response.data);
 
-      // 6️⃣ Uyni qo‘shgandan keyin ro‘yxatni yangilaymiz
+      // 6️⃣ Uyni qo'shgandan keyin ro'yxatni yangilaymiz
       await fetchMyHouses();
       closeAddHouseModal();
-      alert("Uy muvaffaqiyatli qo‘shildi!");
+      alert("Uy muvaffaqiyatli qo'shildi!");
     } catch (error) {
-      alert("Uy qo‘shishda xatolik yuz berdi");
+      alert("Uy qo'shishda xatolik yuz berdi");
     }
   };
-
 
   const handleNewHouseChange = (e) => {
     const { name, value } = e.target
@@ -405,8 +397,6 @@ export default function MyHouses() {
       [name]: numberFields.includes(name) && value !== "" ? Number(value) : value,
     })
   }
-
-
 
   if (loading) {
     return (
@@ -733,18 +723,19 @@ export default function MyHouses() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <TextField
-                      type="number"
-                      name="durationDays"
-                      label="Uy amal qilish muddati (5–20 kun) *"
-                      value={editingHouse.durationDays}   // <-- shu
-                      onChange={handleEditHouse}          // <-- handleEditHouse ishlatamiz
-                      fullWidth
-                      inputProps={{ min: 5, max: 20 }}
-                      required
-                    />
-
-
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Uy amal qilish muddati (5–20 kun) *</label>
+                      <input
+                        type="number"
+                        name="durationDays"
+                        value={editingHouse.durationDays}
+                        onChange={handleEditHouse}
+                        min="5"
+                        max="20"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Umumiy qavatlar</label>
                       <input
