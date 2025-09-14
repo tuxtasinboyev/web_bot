@@ -116,10 +116,10 @@ export default function AddHouse({ onAddHouse }) {
     `w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 ${errors[field] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"}`;
 
   return (
-    <div className="bg-white p-4 md:p-8 rounded-xl shadow-lg max-w-4xl mx-auto flex flex-col h-full">
+    <div className="bg-white p-4 md:p-8 rounded-xl shadow-lg max-w-4xl mx-auto flex flex-col h-full relative">
       <h2 className="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-blue-600">Yangi Uy qo'shish</h2>
 
-      <div className="flex-1 overflow-y-auto pb-20 md:pb-0">
+      <div className="flex-1 overflow-y-auto pb-24 md:pb-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           {/* Title */}
           <div className="flex flex-col">
@@ -295,12 +295,12 @@ export default function AddHouse({ onAddHouse }) {
         </div>
       </div>
 
-      {/* Save button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:p-0 md:border-t-0 md:mt-6 md:flex md:justify-end">
+      {/* Save button - Web botda ko'rinishi uchun z-index qo'shildi */}
+      <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:p-0 md:border-t-0 md:mt-6 md:flex md:justify-end z-10">
         <button
           onClick={handleSave}
           disabled={isLoading}
-          className="px-5 py-2.5 md:px-6 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center w-full md:w-auto"
+          className="px-5 py-2.5 md:px-6 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center w-full md:w-auto shadow-md"
         >
           <Save size={18} className="mr-2" />
           {isLoading ? "Saqlanmoqda..." : "Saqlash"}
