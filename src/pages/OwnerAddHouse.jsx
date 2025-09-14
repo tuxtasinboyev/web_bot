@@ -1,8 +1,8 @@
 // "use client"
 import { useState, useEffect } from "react";
-import { Save, Trash2, Upload } from "lucide-react";
+import { Save, Trash2, Upload, Calendar } from "lucide-react";
 import axios from "axios";
-import { TextField } from "@mui/material";
+import { TextField, Slider, Box, Typography } from "@mui/material";
 
 export default function AddHouse({ onAddHouse }) {
   const [houseData, setHouseData] = useState({
@@ -15,6 +15,7 @@ export default function AddHouse({ onAddHouse }) {
     categoryId: "",
     description: "",
     price: "",
+    durationDays: 10, // Default value
     images: [],
   });
 
@@ -22,6 +23,7 @@ export default function AddHouse({ onAddHouse }) {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showDurationModal, setShowDurationModal] = useState(false);
 
   // Fetch categories
   useEffect(() => {
@@ -47,6 +49,11 @@ export default function AddHouse({ onAddHouse }) {
     setErrors((prev) => ({ ...prev, [name]: !value.trim() ? "Bu maydon to'ldirilishi shart" : null }));
   };
 
+  // Duration change
+  const handleDurationChange = (event, newValue) => {
+    setHouseData({ ...houseData, durationDays: newValue });
+  };
+
   // Image upload
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -58,17 +65,28 @@ export default function AddHouse({ onAddHouse }) {
     setHouseData({ ...houseData, images: updatedImages });
   };
 
-  // Save house
-  const handleSave = async () => {
+  // Validate form
+  const validateForm = () => {
     const newErrors = {};
     const requiredFields = ["title","address","rooms","floor","allFloor","area","categoryId","description","price"];
     requiredFields.forEach((field) => {
       if (!houseData[field]?.toString().trim()) newErrors[field] = "Bu maydon to'ldirilishi shart";
     });
     if (!houseData.images || houseData.images.length < 3) newErrors.images = "Kamida 3 ta rasm yuklash kerak";
+    
     setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
+    return Object.keys(newErrors).length === 0;
+  };
 
+  // Show duration modal
+  const handleShowDurationModal = () => {
+    if (validateForm()) {
+      setShowDurationModal(true);
+    }
+  };
+
+  // Save house
+  const handleSave = async () => {
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -99,9 +117,11 @@ export default function AddHouse({ onAddHouse }) {
         categoryId: "",
         description: "",
         price: "",
+        durationDays: 10,
         images: [],
       });
       setErrors({});
+      setShowDurationModal(false);
       alert("Uy muvaffaqiyatli qo'shildi!");
     } catch (error) {
       console.error("Uy qo'shishda xatolik:", error);
@@ -298,7 +318,7 @@ export default function AddHouse({ onAddHouse }) {
       {/* Save button - Web botda ko'rinishi uchun z-index qo'shildi */}
       <div className="sticky bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 md:static md:p-0 md:border-t-0 md:mt-6 md:flex md:justify-end z-10">
         <button
-          onClick={handleSave}
+          onClick={handleShowDurationModal}
           disabled={isLoading}
           className="px-5 py-2.5 md:px-6 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center w-full md:w-auto shadow-md"
         >
@@ -306,6 +326,66 @@ export default function AddHouse({ onAddHouse }) {
           {isLoading ? "Saqlanmoqda..." : "Saqlash"}
         </button>
       </div>
+
+      {/* Duration Modal */}
+      {showDurationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-center mb-4">
+              <Calendar className="text-blue-600 mr-2" size={24} />
+              <h3 className="text-xl font-bold text-gray-800">E'lon muddatini tanlang</h3>
+            </div>
+            
+            <div className="mb-6">
+              <Box sx={{ width: '100%', px: 2 }}>
+                <Typography id="duration-slider" gutterBottom className="text-gray-700">
+                  E'lon amal qilish muddati: <span className="font-bold text-blue-600">{houseData.durationDays} kun</span>
+                </Typography>
+                <Slider
+                  value={houseData.durationDays}
+                  onChange={handleDurationChange}
+                  aria-labelledby="duration-slider"
+                  valueLabelDisplay="auto"
+                  step={1}
+                  marks
+                  min={5}
+                  max={20}
+                />
+                <div className="flex justify-between text-sm text-gray-500 mt-1">
+                  <span>5 kun</span>
+                  <span>20 kun</span>
+                </div>
+              </Box>
+            </div>
+
+            <div className="text-sm text-gray-600 mb-6 p-3 bg-blue-50 rounded-lg">
+              <p className="font-medium mb-1">E'lon muddati haqida:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>E'lon tanlangan muddat davomida faol bo'ladi</li>
+                <li>Muddat tugagach, e'lon avtomatik ravishda yopiladi</li>
+                <li>Keyinchalik muddatni uzaytirish imkoniyati mavjud</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDurationModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Ortga
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center"
+              >
+                <Save size={18} className="mr-2" />
+                {isLoading ? "Saqlanmoqda..." : "Tasdiqlash va saqlash"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

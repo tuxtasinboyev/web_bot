@@ -17,6 +17,7 @@ import {
   Share,
   Maximize,
   Trash2,
+  Calendar,
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import axios from "axios";
@@ -43,6 +44,7 @@ export default function AdminHomePage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [houseToDelete, setHouseToDelete] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [showExpired, setShowExpired] = useState(false); // Yangi: muddati o'tganlarni filtrlash
 
   useEffect(() => {
     fetchHouses();
@@ -54,7 +56,30 @@ export default function AdminHomePage() {
         setHouses(res.data.data);
       })
       .catch(err => console.error(err));
+  };  
+
+  // Yangi: amal qilish muddatini formatlash funksiyasi
+  const formatEndDate = (dateString) => {
+    if (!dateString) return "Muddatsiz";
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('uz-UZ', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
   };
+
+  // Yangi: muddati tugaganligini tekshirish
+  const isExpired = (endDate) => {
+    if (!endDate) return false;
+    return new Date(endDate) < new Date();
+  };
+
+  // Filtrlangan uylar ro'yxati
+  const filteredHouses = showExpired 
+    ? houses.filter(house => isExpired(house.endDate))
+    : houses;
 
   const openModal = (house) => {
     setSelectedHouse(house);
@@ -150,98 +175,129 @@ export default function AdminHomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin - Barcha Uylar</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Admin - Barcha Uylar</h1>
+        
+        {/* Yangi: filtrlash tugmasi */}
+        <button
+          onClick={() => setShowExpired(!showExpired)}
+          className={`px-4 py-2 rounded-md flex items-center ${
+            showExpired 
+              ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          <Calendar size={18} className="mr-2" />
+          {showExpired ? "Muddati o'tgan uylar" : "Barcha uylar"}
+        </button>
+      </div>
 
       {/* Uylar ro'yxati */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {houses.map((house) => (
-          <div
-            key={house.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative"
-            onClick={() => openModal(house)}
-          >
-            {/* Uchirish tugmasi */}
-            <button
-              className="absolute top-2 left-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 z-10"
-              onClick={(e) => handleDeleteHouse(house, e)}
-              title="Uyni o'chirish"
+        {filteredHouses.map((house) => {
+          const expired = isExpired(house.endDate);
+          
+          return (
+            <div
+              key={house.id}
+              className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative ${
+                expired ? 'opacity-80 border-l-4 border-red-500' : ''
+              }`}
+              onClick={() => openModal(house)}
             >
-              <Trash2 size={16} />
-            </button>
+              {/* Uchirish tugmasi */}
+              <button
+                className="absolute top-2 left-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 z-10"
+                onClick={(e) => handleDeleteHouse(house, e)}
+                title="Uyni o'chirish"
+              >
+                <Trash2 size={16} />
+              </button>
 
-            {/* Uy rasmi */}
-            <div className="h-48 overflow-hidden relative">
-              <img
-                src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
-                alt={house.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
-                {house.Category?.name || "Noma'lum"}
+              {/* Yangi: amal qilish muddati */}
+              <div className={`absolute top-2 right-2 text-xs font-medium px-2.5 py-0.5 rounded z-10 ${
+                expired 
+                  ? 'bg-red-500 text-white' 
+                  : 'bg-blue-500 text-white'
+              }`}>
+                {house.endDate ? formatEndDate(house.endDate) : "Muddatsiz"}
+                {expired && ' (Muddati tugagan)'}
               </div>
-            </div>
 
-            {/* Uy ma'lumotlari */}
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
-                <div className="text-lg font-bold text-blue-600">
-                  ${house.price.toLocaleString()}
+              {/* Uy rasmi */}
+              <div className="h-48 overflow-hidden relative">
+                <img
+                  src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
+                  alt={house.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
+                  {house.Category?.name || "Noma'lum"}
                 </div>
               </div>
 
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
-
-              <div className="flex items-center text-sm text-gray-500 mb-3">
-                <MapPin size={14} className="mr-1" />
-                <span className="truncate">{house.address}</span>
-              </div>
-
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    <Bed size={14} className="mr-1 text-gray-500" />
-                    <span className="text-sm">{house.rooms} xona</span>
+              {/* Uy ma'lumotlari */}
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
+                  <div className="text-lg font-bold text-blue-600">
+                    ${house.price.toLocaleString()}
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">{house.area} m²</span>
-              </div>
 
-              {/* Egasi ma'lumotlari */}
-              <div className="pt-3 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
-                      {house.owner?.image ? (
-                        <img
-                          src={house.owner.image}
-                          alt={house.owner.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User size={16} className="text-gray-600" />
-                      )}
-                    </div>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
 
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
+                <div className="flex items-center text-sm text-gray-500 mb-3">
+                  <MapPin size={14} className="mr-1" />
+                  <span className="truncate">{house.address}</span>
+                </div>
+
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
+                      <Bed size={14} className="mr-1 text-gray-500" />
+                      <span className="text-sm">{house.rooms} xona</span>
                     </div>
                   </div>
+                  <span className="text-sm text-gray-500">{house.area} m²</span>
+                </div>
 
-                  <div className="flex space-x-1">
-                    <button
-                      className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
-                      title="Qo'ng'iroq qilish"
-                      onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
-                    >
-                      <Phone size={14} />
-                    </button>
+                {/* Egasi ma'lumotlari */}
+                <div className="pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
+                        {house.owner?.image ? (
+                          <img
+                            src={house.owner.image}
+                            alt={house.owner.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={16} className="text-gray-600" />
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-1">
+                      <button
+                        className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
+                        title="Qo'ng'iroq qilish"
+                        onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
+                      >
+                        <Phone size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Uyni uchirish uchun tasdiqlash dialogi */}
@@ -401,6 +457,16 @@ export default function AdminHomePage() {
                   <Trash2 size={18} className="mr-2" />
                   Uyni o'chirish
                 </button>
+              </div>
+
+              {/* Yangi: amal qilish muddati ma'lumoti */}
+              <div className="mb-4 p-3 bg-gray-100 rounded-md flex items-center">
+                <Calendar size={18} className="mr-2 text-gray-600" />
+                <span className="font-medium mr-2">Amal qilish muddati:</span>
+                <span className={isExpired(selectedHouse.endDate) ? 'text-red-600 font-semibold' : 'text-gray-700'}>
+                  {selectedHouse.endDate ? formatEndDate(selectedHouse.endDate) : "Muddatsiz"}
+                  {isExpired(selectedHouse.endDate) && ' (Muddati tugagan)'}
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-6">

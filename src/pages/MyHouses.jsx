@@ -27,7 +27,11 @@ export default function MyHouses() {
     allFloor: "",
     categoryId: "",
     images: [],
-  })
+    durationDays: 5,
+  });
+
+
+
 
   const [categories, setCategories] = useState([])
   const [myHouses, setMyHouses] = useState([])
@@ -148,7 +152,8 @@ export default function MyHouses() {
 
   const handleEditHouse = (e) => {
     const { name, value } = e.target
-    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId"]
+    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId", "durationDays"];
+
 
     setEditingHouse({
       ...editingHouse,
@@ -166,18 +171,28 @@ export default function MyHouses() {
         return
       }
 
+      if (editingHouse.durationDays < 5 || editingHouse.durationDays > 20) {
+        alert("Uy amal qilish muddati 5 dan 20 kungacha bo‘lishi kerak!");
+        return;
+      }
+
+
       const formData = new FormData()
 
       // Add only changed fields to FormData
-      if (editingHouse.title) formData.append("title", editingHouse.title)
-      if (editingHouse.price) formData.append("price", editingHouse.price.toString())
-      if (editingHouse.rooms) formData.append("rooms", editingHouse.rooms.toString())
-      if (editingHouse.area) formData.append("area", editingHouse.area.toString())
-      if (editingHouse.floor) formData.append("floor", editingHouse.floor.toString())
-      if (editingHouse.allFloor) formData.append("allFloor", editingHouse.allFloor.toString())
-      if (editingHouse.address) formData.append("address", editingHouse.address)
-      if (editingHouse.description) formData.append("description", editingHouse.description)
-      if (editingHouse.categoryId) formData.append("categoryId", editingHouse.categoryId.toString())
+      if (editingHouse.title) formData.append("title", editingHouse.title);
+      if (editingHouse.price) formData.append("price", editingHouse.price.toString());
+      if (editingHouse.rooms) formData.append("rooms", editingHouse.rooms.toString());
+      if (editingHouse.area) formData.append("area", editingHouse.area.toString());
+      if (editingHouse.floor) formData.append("floor", editingHouse.floor.toString());
+      if (editingHouse.allFloor) formData.append("allFloor", editingHouse.allFloor.toString());
+      if (editingHouse.address) formData.append("address", editingHouse.address);
+      if (editingHouse.description) formData.append("description", editingHouse.description);
+      if (editingHouse.categoryId) formData.append("categoryId", editingHouse.categoryId.toString());
+
+      if (editingHouse.durationDays) {
+        formData.append("durationDays", editingHouse.durationDays.toString());
+      }
 
       // Add new images if any
       newImages.forEach((image, index) => {
@@ -316,7 +331,8 @@ export default function MyHouses() {
       !newHouse.area ||
       !newHouse.address ||
       !newHouse.categoryId ||
-      !newHouse.description
+      !newHouse.description ||
+      !newHouse.durationDays // <--- qo‘shildi
     ) {
       alert("Iltimos, barcha majburiy maydonlarni to‘ldiring!");
       return;
@@ -327,6 +343,11 @@ export default function MyHouses() {
       alert("Kamida 3 ta rasm yuklash kerak!");
       return;
     }
+    if (newHouse.durationDays < 5 || newHouse.durationDays > 20) {
+      alert("Uy amal qilish muddati 5 dan 20 kungacha bo‘lishi kerak!");
+      return;
+    }
+
 
     try {
       const token = getAuthToken();
@@ -344,6 +365,8 @@ export default function MyHouses() {
       formData.append("address", newHouse.address);
       formData.append("categoryId", Number(newHouse.categoryId).toString());
       formData.append("description", newHouse.description);
+      formData.append("durationDays", Number(newHouse.durationDays).toString());
+
 
       if (newHouse.floor)
         formData.append("floor", Number(newHouse.floor).toString());
@@ -375,7 +398,7 @@ export default function MyHouses() {
 
   const handleNewHouseChange = (e) => {
     const { name, value } = e.target
-    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId"]
+    const numberFields = ["price", "rooms", "area", "floor", "allFloor", "categoryId", "durationDays"];
 
     setNewHouse({
       ...newHouse,
@@ -492,7 +515,18 @@ export default function MyHouses() {
                     </div>
                     <span className="text-sm text-gray-500">{house.area} m²</span>
                   </div>
+
+                  {/* 🆕 Tugash sanasi */}
+                  {house.endDate && (
+                    <div className="text-sm text-gray-500">
+                      🗓 Tugash sanasi:{" "}
+                      <span className="font-medium">
+                        {new Date(house.endDate).toLocaleDateString("uz-UZ")}
+                      </span>
+                    </div>
+                  )}
                 </div>
+
               </div>
             ))}
           </div>
@@ -699,6 +733,18 @@ export default function MyHouses() {
                         className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
+                    <TextField
+                      type="number"
+                      name="durationDays"
+                      label="Uy amal qilish muddati (5–20 kun) *"
+                      value={editingHouse.durationDays}   // <-- shu
+                      onChange={handleEditHouse}          // <-- handleEditHouse ishlatamiz
+                      fullWidth
+                      inputProps={{ min: 5, max: 20 }}
+                      required
+                    />
+
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Umumiy qavatlar</label>
                       <input
@@ -884,161 +930,172 @@ export default function MyHouses() {
           )}
         </>
       )}
-{isAddingHouse && (
-  <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-auto">
-    <div className="bg-white rounded-lg max-w-4xl w-full p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">Yangi Uy Qo'shish</h2>
-        <button onClick={closeAddHouseModal} className="p-1 rounded-full hover:bg-gray-200">
-          <X size={24} />
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <TextField
-          type="text"
-          name="title"
-          label="Nomi *"
-          value={newHouse.title}
-          onChange={handleNewHouseChange}
-          fullWidth
-          required
-        />
-        <TextField
-          type="number"
-          name="price"
-          label="Narxi ($) *"
-          value={newHouse.price}
-          onChange={handleNewHouseChange}
-          fullWidth
-          required
-        />
-        <TextField
-          type="number"
-          name="rooms"
-          label="Xonalar soni *"
-          value={newHouse.rooms}
-          onChange={handleNewHouseChange}
-          fullWidth
-          required
-        />
-        <TextField
-          type="number"
-          name="area"
-          label="Maydoni (m²) *"
-          value={newHouse.area}
-          onChange={handleNewHouseChange}
-          fullWidth
-          required
-        />
-        <TextField
-          type="text"
-          name="address"
-          label="Manzil *"
-          value={newHouse.address}
-          onChange={handleNewHouseChange}
-          fullWidth
-          required
-        />
-        <select
-          name="categoryId"
-          value={newHouse.categoryId}
-          onChange={handleNewHouseChange}
-          className="w-full px-4 py-2 border rounded-md"
-          required
-        >
-          <option value="">Kategoriyani tanlang *</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <TextField
-          type="number"
-          name="floor"
-          label="Qavat (ixtiyoriy)"
-          value={newHouse.floor}
-          onChange={handleNewHouseChange}
-          fullWidth
-        />
-        <TextField
-          type="number"
-          name="allFloor"
-          label="Umumiy qavatlar (ixtiyoriy)"
-          value={newHouse.allFloor}
-          onChange={handleNewHouseChange}
-          fullWidth
-        />
-      </div>
-
-      <TextField
-        name="description"
-        label="Tavsif *"
-        value={newHouse.description}
-        onChange={handleNewHouseChange}
-        fullWidth
-        multiline
-        rows={4}
-        required
-      />
-
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Rasmlar (kamida 3 ta) *
-        </label>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-          {newHouse.images.map((img, idx) => (
-            <div key={idx} className="relative">
-              <img
-                src={img || "/placeholder.svg"}
-                alt=""
-                className="w-full h-24 object-cover rounded-md"
-              />
-              <button
-                onClick={() => removeImage(idx, true)}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-              >
-                <X size={14} />
+      {isAddingHouse && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 overflow-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Yangi Uy Qo'shish</h2>
+              <button onClick={closeAddHouseModal} className="p-1 rounded-full hover:bg-gray-200">
+                <X size={24} />
               </button>
             </div>
-          ))}
 
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer hover:border-blue-500">
-            <Upload size={24} className="text-gray-400 mb-1" />
-            <span className="text-sm text-gray-500">Rasm qo'shish</span>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, true)}
-              className="hidden"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <TextField
+                type="text"
+                name="title"
+                label="Nomi *"
+                value={newHouse.title}
+                onChange={handleNewHouseChange}
+                fullWidth
+                required
+              />
+              <TextField
+                type="number"
+                name="price"
+                label="Narxi ($) *"
+                value={newHouse.price}
+                onChange={handleNewHouseChange}
+                fullWidth
+                required
+              />
+              <TextField
+                type="number"
+                name="rooms"
+                label="Xonalar soni *"
+                value={newHouse.rooms}
+                onChange={handleNewHouseChange}
+                fullWidth
+                required
+              />
+              <TextField
+                type="number"
+                name="area"
+                label="Maydoni (m²) *"
+                value={newHouse.area}
+                onChange={handleNewHouseChange}
+                fullWidth
+                required
+              />
+              <TextField
+                type="number"
+                name="durationDays"
+                label="Uy amal qilish muddati (5–20 kun) *"
+                value={newHouse.durationDays}
+                onChange={handleNewHouseChange}
+                fullWidth
+                inputProps={{ min: 5, max: 20 }}
+                required
+              />
+
+              <TextField
+                type="text"
+                name="address"
+                label="Manzil *"
+                value={newHouse.address}
+                onChange={handleNewHouseChange}
+                fullWidth
+                required
+              />
+              <select
+                name="categoryId"
+                value={newHouse.categoryId}
+                onChange={handleNewHouseChange}
+                className="w-full px-4 py-2 border rounded-md"
+                required
+              >
+                <option value="">Kategoriyani tanlang *</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <TextField
+                type="number"
+                name="floor"
+                label="Qavat (ixtiyoriy)"
+                value={newHouse.floor}
+                onChange={handleNewHouseChange}
+                fullWidth
+              />
+              <TextField
+                type="number"
+                name="allFloor"
+                label="Umumiy qavatlar (ixtiyoriy)"
+                value={newHouse.allFloor}
+                onChange={handleNewHouseChange}
+                fullWidth
+              />
+            </div>
+
+            <TextField
+              name="description"
+              label="Tavsif *"
+              value={newHouse.description}
+              onChange={handleNewHouseChange}
+              fullWidth
+              multiline
+              rows={4}
+              required
             />
-          </label>
-        </div>
-        <p className="text-sm text-gray-500">
-          Yuklangan rasmlar: {newImages.length}/3 (minimum)
-        </p>
-      </div>
 
-      <div className="flex justify-end space-x-3">
-        <button
-          onClick={closeAddHouseModal}
-          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-        >
-          Bekor qilish
-        </button>
-        <button
-          onClick={handleAddHouseSave}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
-        >
-          <Save size={18} className="mr-2" />
-          Saqlash
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rasmlar (kamida 3 ta) *
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {newHouse.images.map((img, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={img || "/placeholder.svg"}
+                      alt=""
+                      className="w-full h-24 object-cover rounded-md"
+                    />
+                    <button
+                      onClick={() => removeImage(idx, true)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md h-24 cursor-pointer hover:border-blue-500">
+                  <Upload size={24} className="text-gray-400 mb-1" />
+                  <span className="text-sm text-gray-500">Rasm qo'shish</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => handleImageUpload(e, true)}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-sm text-gray-500">
+                Yuklangan rasmlar: {newImages.length}/3 (minimum)
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeAddHouseModal}
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={handleAddHouseSave}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
+              >
+                <Save size={18} className="mr-2" />
+                Saqlash
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   )

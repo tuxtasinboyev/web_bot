@@ -16,6 +16,7 @@ import {
   Heart,
   Share,
   Maximize,
+  Calendar
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import axios from "axios";
@@ -37,6 +38,30 @@ export default function HomePage() {
       })
       .catch(err => console.error(err));
   }, []);
+
+  // Amal qilish muddatini formatlash funksiyasi
+  const formatEndDate = (dateString) => {
+    if (!dateString) return "Muddat ko'rsatilmagan";
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('uz-UZ', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  // Qolgan kunlarni hisoblash funksiyasi
+  const getDaysRemaining = (dateString) => {
+    if (!dateString) return null;
+    
+    const now = new Date();
+    const endDate = new Date(dateString);
+    const diffTime = endDate - now;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
 
   const openModal = (house) => {
     setSelectedHouse(house);
@@ -96,85 +121,105 @@ export default function HomePage() {
 
       {/* Uylar ro'yxati */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {houses.map((house) => (
-          <div
-            key={house.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => openModal(house)}
-          >
-            {/* Uy rasmi */}
-            <div className="h-48 overflow-hidden relative">
-              <img
-                src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
-                alt={house.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
-                {house.Category?.name || "Noma'lum"}
-              </div>
-            </div>
-
-            {/* Uy ma'lumotlari */}
-            <div className="p-4">
-              <div className="flex justify-between items-start mb-2">
-                <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
-                <div className="text-lg font-bold text-blue-600">
-                  ${house.price.toLocaleString()}
+        {houses.map((house) => {
+          const daysRemaining = getDaysRemaining(house.endDate);
+          
+          return (
+            <div
+              key={house.id}
+              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => openModal(house)}
+            >
+              {/* Uy rasmi */}
+              <div className="h-48 overflow-hidden relative">
+                <img
+                  src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
+                  alt={house.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
+                  {house.Category?.name || "Noma'lum"}
                 </div>
+                
+                {/* Amal qilish muddati */}
+                {house.endDate && (
+                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+                    <Calendar size={12} className="mr-1" />
+                    {daysRemaining > 0 ? `${daysRemaining} kun qoldi` : 'Muddati tugagan'}
+                  </div>
+                )}
               </div>
 
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
-
-              <div className="flex items-center text-sm text-gray-500 mb-3">
-                <MapPin size={14} className="mr-1" />
-                <span className="truncate">{house.address}</span>
-              </div>
-
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    <Bed size={14} className="mr-1 text-gray-500" />
-                    <span className="text-sm">{house.rooms} xona</span>
+              {/* Uy ma'lumotlari */}
+              <div className="p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
+                  <div className="text-lg font-bold text-blue-600">
+                    ${house.price.toLocaleString()}
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">{house.area} m²</span>
-              </div>
 
-              {/* Egasi ma'lumotlari */}
-              <div className="pt-3 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
-                      {house.owner?.image ? (
-                        <img
-                          src={house.owner.image}
-                          alt={house.owner.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User size={16} className="text-gray-600" />
-                      )}
-                    </div>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
 
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
+                <div className="flex items-center text-sm text-gray-500 mb-3">
+                  <MapPin size={14} className="mr-1" />
+                  <span className="truncate">{house.address}</span>
+                </div>
+
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-center">
+                      <Bed size={14} className="mr-1 text-gray-500" />
+                      <span className="text-sm">{house.rooms} xona</span>
                     </div>
                   </div>
+                  <span className="text-sm text-gray-500">{house.area} m²</span>
+                </div>
 
-                  <div className="flex space-x-1">
-                    <button
-                      className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
-                      title="Qo'ng'iroq qilish"
-                      onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
-                    >
-                      <Phone size={14} />
-                    </button>
+                {/* Amal qilish muddati (pastki qismda) */}
+                {house.endDate && (
+                  <div className="mb-3 text-sm text-gray-500 flex items-center">
+                    <Calendar size={12} className="mr-1" />
+                    <span>Amal qilish muddati: {formatEndDate(house.endDate)}</span>
+                  </div>
+                )}
+
+                {/* Egasi ma'lumotlari */}
+                <div className="pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
+                        {house.owner?.image ? (
+                          <img
+                            src={house.owner.image}
+                            alt={house.owner.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={16} className="text-gray-600" />
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-1">
+                      <button
+                        className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
+                        title="Qo'ng'iroq qilish"
+                        onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
+                      >
+                        <Phone size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Telefon raqami modal oynasi - Z-indexni oshirish va joylashuvni markazga olish */}
@@ -247,6 +292,16 @@ export default function HomePage() {
                 >
                   <Maximize size={18} />
                 </button>
+                
+                {/* Amal qilish muddati (rasm ustida) */}
+                {selectedHouse.endDate && (
+                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+                    <Calendar size={12} className="mr-1" />
+                    {getDaysRemaining(selectedHouse.endDate) > 0 
+                      ? `${getDaysRemaining(selectedHouse.endDate)} kun qoldi` 
+                      : 'Muddati tugagan'}
+                  </div>
+                )}
               </div>
 
               {selectedHouse.images && selectedHouse.images.length > 1 && (
@@ -286,6 +341,24 @@ export default function HomePage() {
                   <p className="text-blue-600 text-xl font-semibold">${selectedHouse.price.toLocaleString()}</p>
                 </div>
               </div>
+
+              {/* Amal qilish muddati ma'lumotlari */}
+              {selectedHouse.endDate && (
+                <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                  <div className="flex items-center">
+                    <Calendar size={18} className="mr-2 text-gray-600" />
+                    <div>
+                      <p className="font-medium">Amal qilish muddati</p>
+                      <p className="text-gray-700">{formatEndDate(selectedHouse.endDate)}</p>
+                      <p className={`text-sm ${getDaysRemaining(selectedHouse.endDate) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {getDaysRemaining(selectedHouse.endDate) > 0 
+                          ? `${getDaysRemaining(selectedHouse.endDate)} kun qoldi` 
+                          : 'E\'lon muddati tugagan'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-center">
