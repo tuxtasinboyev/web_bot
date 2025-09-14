@@ -14,6 +14,7 @@ import {
   BarChart as ChartIcon,
   LogOut as LogoutIcon,
 } from 'lucide-react';
+import AdminHomePage from './AdminHomePage';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -65,7 +66,7 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'dashboard': return <div className="min-h-[350px]"><Dashboard users={users} houses={houses} categories={categories} /></div>;
       case 'users': return <UsersTab users={users} setUsers={setUsers} />;
-      case 'houses': return <div className="p-4"><HomePage /></div>;
+      case 'houses': return <div className="p-4"><AdminHomePage /></div>;
       case 'categories': return <div className="p-4"><Category /></div>;
       case 'profile': return <div className="p-4"><Profile profileData={profile} setProfileData={setProfile} /></div>;
       default: return <Dashboard users={users} houses={houses} categories={categories} />;
