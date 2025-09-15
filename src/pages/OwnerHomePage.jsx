@@ -66,15 +66,49 @@ export default function HomePage() {
     "Qoraqalpog'iston"
   ];
 
+  // Viloyat nomlarini kichik harflarga o'tkazib, qisqartmalarni ham qo'shish
+  const regionMappings = {
+    "toshkent shahri": ["toshkent", "tashkent", "tosh sh", "toshkent sh"],
+    "toshkent viloyati": ["toshkent vil", "tosh vil", "tashkent region"],
+    "andijon": ["andijan"],
+    "buxoro": ["bukhara"],
+    "farg'ona": ["fergana"],
+    "jizzax": ["jizzakh"],
+    "xorazm": ["khorezm"],
+    "namangan": ["namangan"],
+    "navoiy": ["navoi"],
+    "qashqadaryo": ["kashkadarya"],
+    "samarqand": ["samarkand"],
+    "sirdaryo": ["sirdarya"],
+    "surxondaryo": ["surkhandarya"],
+    "qoraqalpog'iston": ["karakalpakstan", "karakalpak"]
+  };
+
   // Filtrlangan uylar
   const filteredHouses = useMemo(() => {
     return houses.filter(house => {
+      // Qidiruv bo'yicha filtrlash
       const matchesSearch = searchTerm === "" || 
         house.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        house.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        house.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        house.address?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesRegion = selectedRegion === "" || 
-        (house.address && house.address.toLowerCase().includes(selectedRegion.toLowerCase()));
+      // Viloyat bo'yicha filtrlash
+      let matchesRegion = selectedRegion === "";
+      
+      if (!matchesRegion && house.address) {
+        const addressLower = house.address.toLowerCase();
+        const regionLower = selectedRegion.toLowerCase();
+        
+        // To'g'ridan-to'g'ri moslikni tekshirish
+        if (addressLower.includes(regionLower)) {
+          matchesRegion = true;
+        } else {
+          // Qisqartmalar va variantlar bo'yicha tekshirish
+          const regionVariants = regionMappings[regionLower] || [];
+          matchesRegion = regionVariants.some(variant => addressLower.includes(variant));
+        }
+      }
       
       return matchesSearch && matchesRegion;
     });
@@ -168,7 +202,7 @@ export default function HomePage() {
           </div>
           <input
             type="text"
-            placeholder="Uy nomi yoki tavsifi bo'yicha qidirish..."
+            placeholder="Uy nomi, tavsifi yoki manzili bo'yicha qidirish..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -192,6 +226,7 @@ export default function HomePage() {
       {/* Natijalar soni */}
       <div className="mb-4 text-sm text-gray-600">
         {filteredHouses.length} ta uy topildi
+        {(searchTerm || selectedRegion) && " (filtrlangan)"}
       </div>
 
       {/* Yuklanmoqda bo'lsa */}
