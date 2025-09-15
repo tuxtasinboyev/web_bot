@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   Home,
   ClipboardList,
@@ -16,7 +16,8 @@ import {
   Heart,
   Share,
   Maximize,
-  Calendar
+  Calendar,
+  Search
 } from "lucide-react";
 import { SiTelegram } from "react-icons/si";
 import axios from "axios";
@@ -30,14 +31,54 @@ export default function HomePage() {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [selectedPhone, setSelectedPhone] = useState("");
   const [selectedOwner, setSelectedOwner] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     axios.get("https://houzing.botify.uz/houses")
       .then(res => {
         setHouses(res.data.data);
+        setIsLoading(false);
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setIsLoading(false);
+      });
   }, []);
+
+  // Viloyatlar ro'yxati
+  const regions = [
+    "Toshkent shahri",
+    "Toshkent viloyati",
+    "Andijon",
+    "Buxoro",
+    "Farg'ona",
+    "Jizzax",
+    "Xorazm",
+    "Namangan",
+    "Navoiy",
+    "Qashqadaryo",
+    "Samarqand",
+    "Sirdaryo",
+    "Surxondaryo",
+    "Qoraqalpog'iston"
+  ];
+
+  // Filtrlangan uylar
+  const filteredHouses = useMemo(() => {
+    return houses.filter(house => {
+      const matchesSearch = searchTerm === "" || 
+        house.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        house.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesRegion = selectedRegion === "" || 
+        (house.address && house.address.toLowerCase().includes(selectedRegion.toLowerCase()));
+      
+      return matchesSearch && matchesRegion;
+    });
+  }, [houses, searchTerm, selectedRegion]);
 
   // Amal qilish muddatini formatlash funksiyasi
   const formatEndDate = (dateString) => {
@@ -116,115 +157,169 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Barcha Uylar</h1>
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 md:mb-8">Barcha Uylar</h1>
 
-      {/* Uylar ro'yxati */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {houses.map((house) => {
-          const daysRemaining = getDaysRemaining(house.endDate);
-          
-          return (
-            <div
-              key={house.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => openModal(house)}
-            >
-              {/* Uy rasmi */}
-              <div className="h-48 overflow-hidden relative">
-                <img
-                  src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
-                  alt={house.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
-                  {house.Category?.name || "Noma'lum"}
-                </div>
-                
-                {/* Amal qilish muddati */}
-                {house.endDate && (
-                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
-                    <Calendar size={12} className="mr-1" />
-                    {daysRemaining > 0 ? `${daysRemaining} kun qoldi` : 'Muddati tugagan'}
-                  </div>
-                )}
-              </div>
-
-              {/* Uy ma'lumotlari */}
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
-                  <div className="text-lg font-bold text-blue-600">
-                    ${house.price.toLocaleString()}
-                  </div>
-                </div>
-
-                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
-
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                  <MapPin size={14} className="mr-1" />
-                  <span className="truncate">{house.address}</span>
-                </div>
-
-                <div className="flex justify-between items-center mb-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center">
-                      <Bed size={14} className="mr-1 text-gray-500" />
-                      <span className="text-sm">{house.rooms} xona</span>
-                    </div>
-                  </div>
-                  <span className="text-sm text-gray-500">{house.area} m²</span>
-                </div>
-
-                {/* Amal qilish muddati (pastki qismda) */}
-                {house.endDate && (
-                  <div className="mb-3 text-sm text-gray-500 flex items-center">
-                    <Calendar size={12} className="mr-1" />
-                    <span>Amal qilish muddati: {formatEndDate(house.endDate)}</span>
-                  </div>
-                )}
-
-                {/* Egasi ma'lumotlari */}
-                <div className="pt-3 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
-                        {house.owner?.image ? (
-                          <img
-                            src={house.owner.image}
-                            alt={house.owner.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <User size={16} className="text-gray-600" />
-                        )}
-                      </div>
-
-                      <div>
-                        <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex space-x-1">
-                      <button
-                        className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
-                        title="Qo'ng'iroq qilish"
-                        onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
-                      >
-                        <Phone size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* Qidiruv va filtrlash qismi */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={20} className="text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Uy nomi yoki tavsifi bo'yicha qidirish..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        
+        <div className="w-full md:w-64">
+          <select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value)}
+            className="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Barcha viloyatlar</option>
+            {regions.map(region => (
+              <option key={region} value={region}>{region}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Telefon raqami modal oynasi - Z-indexni oshirish va joylashuvni markazga olish */}
+      {/* Natijalar soni */}
+      <div className="mb-4 text-sm text-gray-600">
+        {filteredHouses.length} ta uy topildi
+      </div>
+
+      {/* Yuklanmoqda bo'lsa */}
+      {isLoading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+
+      {/* Uylar ro'yxati */}
+      {!isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {filteredHouses.map((house) => {
+            const daysRemaining = getDaysRemaining(house.endDate);
+            
+            return (
+              <div
+                key={house.id}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => openModal(house)}
+              >
+                {/* Uy rasmi */}
+                <div className="h-48 overflow-hidden relative">
+                  <img
+                    src={house.images && house.images[0] ? house.images[0] : "/placeholder-house.jpg"}
+                    alt={house.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-medium px-2.5 py-0.5 rounded">
+                    {house.Category?.name || "Noma'lum"}
+                  </div>
+                  
+                  {/* Amal qilish muddati */}
+                  {house.endDate && (
+                    <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-medium px-2.5 py-0.5 rounded flex items-center">
+                      <Calendar size={12} className="mr-1" />
+                      {daysRemaining > 0 ? `${daysRemaining} kun qoldi` : 'Muddati tugagan'}
+                    </div>
+                  )}
+                </div>
+
+                {/* Uy ma'lumotlari */}
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg text-gray-800">{house.title}</h3>
+                    <div className="text-lg font-bold text-blue-600">
+                      ${house.price.toLocaleString()}
+                    </div>
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{house.description}</p>
+
+                  <div className="flex items-center text-sm text-gray-500 mb-3">
+                    <MapPin size={14} className="mr-1" />
+                    <span className="truncate">{house.address}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center">
+                        <Bed size={14} className="mr-1 text-gray-500" />
+                        <span className="text-sm">{house.rooms} xona</span>
+                      </div>
+                    </div>
+                    <span className="text-sm text-gray-500">{house.area} m²</span>
+                  </div>
+
+                  {/* Amal qilish muddati (pastki qismda) */}
+                  {house.endDate && (
+                    <div className="mb-3 text-sm text-gray-500 flex items-center">
+                      <Calendar size={12} className="mr-1" />
+                      <span>Amal qilish muddati: {formatEndDate(house.endDate)}</span>
+                    </div>
+                  )}
+
+                  {/* Egasi ma'lumotlari */}
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 rounded-full overflow-hidden mr-2 flex items-center justify-center">
+                          {house.owner?.image ? (
+                            <img
+                              src={house.owner.image}
+                              alt={house.owner.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User size={16} className="text-gray-600" />
+                          )}
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-medium text-gray-800">{house.owner?.name || "Noma'lum"}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-1">
+                        <button
+                          className="p-1 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition-colors"
+                          title="Qo'ng'iroq qilish"
+                          onClick={(e) => openPhoneModal(house.owner?.phone || "", house.owner?.name || "", e)}
+                        >
+                          <Phone size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Hech qanday natija topilmaganda */}
+      {!isLoading && filteredHouses.length === 0 && (
+        <div className="text-center py-12">
+          <div className="inline-block p-4 bg-gray-100 rounded-full mb-4">
+            <Search size={32} className="text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-700 mb-2">Hech qanday uy topilmadi</h3>
+          <p className="text-gray-500">Boshqa qidiruv shartlari yoki boshqa viloyatni tanlab ko'ring.</p>
+        </div>
+      )}
+
+      {/* Telefon raqami modal oynasi */}
       {isPhoneModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-180 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-sm w-full p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold">Telefon raqami</h3>
@@ -423,7 +518,7 @@ export default function HomePage() {
                       className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center"
                     >
                       <Phone size={18} className="mr-2" />
-                      {selectedPhone}
+                      Qo'ng'iroq qilish
                     </button>
                   </div>
                 </div>
