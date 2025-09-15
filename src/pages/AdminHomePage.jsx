@@ -56,12 +56,12 @@ export default function AdminHomePage() {
         setHouses(res.data.data);
       })
       .catch(err => console.error(err));
-  };  
+  };
 
   // Yangi: amal qilish muddatini formatlash funksiyasi
   const formatEndDate = (dateString) => {
     if (!dateString) return "Muddatsiz";
-    
+
     const date = new Date(dateString);
     return date.toLocaleDateString('uz-UZ', {
       year: 'numeric',
@@ -77,7 +77,7 @@ export default function AdminHomePage() {
   };
 
   // Filtrlangan uylar ro'yxati
-  const filteredHouses = showExpired 
+  const filteredHouses = showExpired
     ? houses.filter(house => isExpired(house.endDate))
     : houses;
 
@@ -128,7 +128,7 @@ export default function AdminHomePage() {
   // Uyni tasdiqlangan holda uchirish
   const confirmDeleteHouse = () => {
     if (!houseToDelete) return;
-    
+
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       setSnackbar({ open: true, message: "Avtorizatsiya tokeni topilmadi", severity: "error" });
@@ -140,22 +140,22 @@ export default function AdminHomePage() {
         Authorization: `Bearer ${accessToken}`
       }
     })
-    .then(response => {
-      setSnackbar({ open: true, message: "Uy muvaffaqiyatli o'chirildi", severity: "success" });
-      fetchHouses(); // Yangilangan uylar ro'yxatini olish
-    })
-    .catch(error => {
-      console.error("Uyni o'chirishda xatolik:", error);
-      setSnackbar({ 
-        open: true, 
-        message: error.response?.data?.message || "Uyni o'chirishda xatolik yuz berdi", 
-        severity: "error" 
+      .then(response => {
+        setSnackbar({ open: true, message: "Uy muvaffaqiyatli o'chirildi", severity: "success" });
+        fetchHouses(); // Yangilangan uylar ro'yxatini olish
+      })
+      .catch(error => {
+        console.error("Uyni o'chirishda xatolik:", error);
+        setSnackbar({
+          open: true,
+          message: error.response?.data?.message || "Uyni o'chirishda xatolik yuz berdi",
+          severity: "error"
+        });
+      })
+      .finally(() => {
+        setDeleteDialogOpen(false);
+        setHouseToDelete(null);
       });
-    })
-    .finally(() => {
-      setDeleteDialogOpen(false);
-      setHouseToDelete(null);
-    });
   };
 
   // Telefon modalini ochish funksiyasi
@@ -177,32 +177,32 @@ export default function AdminHomePage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Admin - Barcha Uylar</h1>
-        
-        {/* Yangi: filtrlash tugmasi */}
+
         <button
           onClick={() => setShowExpired(!showExpired)}
-          className={`px-4 py-2 rounded-md flex items-center ${
-            showExpired 
-              ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+          className={`px-4 py-2 rounded-md flex items-center ${showExpired
+              ? 'bg-red-100 text-red-700 hover:bg-red-200'
               : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+            }`}
         >
           <Calendar size={18} className="mr-2" />
-          {showExpired ? "Muddati o'tgan uylar" : "Barcha uylar"}
+          <span className="hidden sm:inline">
+            {showExpired ? "Muddati o'tgan uylar" : "Barcha uylar"}
+          </span>
         </button>
       </div>
+
 
       {/* Uylar ro'yxati */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredHouses.map((house) => {
           const expired = isExpired(house.endDate);
-          
+
           return (
             <div
               key={house.id}
-              className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative ${
-                expired ? 'opacity-80 border-l-4 border-red-500' : ''
-              }`}
+              className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer relative ${expired ? 'opacity-80 border-l-4 border-red-500' : ''
+                }`}
               onClick={() => openModal(house)}
             >
               {/* Uchirish tugmasi */}
@@ -215,11 +215,10 @@ export default function AdminHomePage() {
               </button>
 
               {/* Yangi: amal qilish muddati */}
-              <div className={`absolute top-2 right-2 text-xs font-medium px-2.5 py-0.5 rounded z-10 ${
-                expired 
-                  ? 'bg-red-500 text-white' 
+              <div className={`absolute top-2 right-2 text-xs font-medium px-2.5 py-0.5 rounded z-10 ${expired
+                  ? 'bg-red-500 text-white'
                   : 'bg-blue-500 text-white'
-              }`}>
+                }`}>
                 {house.endDate ? formatEndDate(house.endDate) : "Muddatsiz"}
                 {expired && ' (Muddati tugagan)'}
               </div>
@@ -327,14 +326,14 @@ export default function AdminHomePage() {
       </Dialog>
 
       {/* Xabar ko'rsatish uchun Snackbar */}
-      <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={6000} 
-        onClose={() => setSnackbar({...snackbar, open: false})}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setSnackbar({...snackbar, open: false})} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
