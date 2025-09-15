@@ -72,9 +72,9 @@ export default function OwnerDashboard() {
   }, [navigate]);
 
   const tabs = [
-    { id: "home", label: "Bosh sahifa", icon: <Home size={22} /> },
-    { id: "my", label: "Mening uylarim", icon: <ClipboardList size={22} /> },
-    { id: "profile", label: "Profil", icon: <User size={22} /> },
+    { id: "home", icon: <Home size={22} /> },
+    { id: "my", icon: <ClipboardList size={22} /> },
+    { id: "profile", icon: <User size={22} /> },
     // add button handled separately
   ];
 
@@ -122,7 +122,6 @@ export default function OwnerDashboard() {
               className={`flex flex-col items-center py-3 ${active === tab.id ? "text-blue-600" : "text-gray-600"}`}
             >
               {tab.icon}
-              <span className="text-xs mt-1">{tab.label}</span>
             </button>
           ))}
 
