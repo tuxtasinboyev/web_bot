@@ -51,8 +51,8 @@ export default function UserDashboard() {
     }, []);
 
     const tabs = [
-        { id: "home", label: "Bosh sahifa", icon: <Home size={22} /> },
-        { id: "profile", label: "Profil", icon: <User size={22} /> },
+        { id: "home",  icon: <Home size={22} /> },
+        { id: "profile", icon: <User size={22} /> },
     ];
 
     const renderContent = () => {
@@ -108,7 +108,6 @@ export default function UserDashboard() {
                             }`}
                         >
                             {tab.icon}
-                            <span className="text-xs mt-1">{tab.label}</span>
                         </button>
                     ))}
                 </div>

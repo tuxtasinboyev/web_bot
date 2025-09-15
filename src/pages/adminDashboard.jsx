@@ -75,11 +75,11 @@ const AdminDashboard = () => {
 
   // Footer menu
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: <HomeIcon size={20} /> },
-    { id: 'users', label: 'Foydalanuvchilar', icon: <UserIcon size={20} /> },
-    { id: 'houses', label: 'Uylar', icon: <HomeIcon size={20} /> },
-    { id: 'categories', label: 'Kategoriya', icon: <ChartIcon size={20} /> },
-    { id: 'profile', label: 'Profil', icon: <UserIcon size={20} /> },
+    { id: 'dashboard', icon: <HomeIcon size={20} /> },
+    { id: 'users', icon: <UserIcon size={20} /> },
+    { id: 'houses', icon: <HomeIcon size={20} /> },
+    { id: 'categories', icon: <ChartIcon size={20} /> },
+    { id: 'profile',  icon: <UserIcon size={20} /> },
   ];
 
   return (
@@ -115,7 +115,6 @@ const AdminDashboard = () => {
                 }`}
             >
               {tab.icon}
-              <span className="mt-1">{tab.label}</span>
             </button>
           ))}
         </div>
