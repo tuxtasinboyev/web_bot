@@ -52,8 +52,8 @@ export default function AdminHomePage() {
 
   // O'zbekiston viloyatlari va ularning muqobil nomlari
   const regions = [
-    { value: "Toshkent shahri", aliases: ["toshkent sh", "toshkent shahri", "tashkent city"] },
-    { value: "Toshkent viloyati", aliases: ["toshkent v", "toshkent viloyati", "tashkent region"] },
+    { value: "Toshkent shahri", aliases: ["toshkent sh", "toshkent shahri", "tashkent city", "toshkent"] },
+    { value: "Toshkent viloyati", aliases: ["toshkent v", "toshkent viloyati", "tashkent region", "toshkent"] },
     { value: "Andijon", aliases: ["andijan", "andijon"] },
     { value: "Buxoro", aliases: ["bukhara", "buxoro"] },
     { value: "Farg'ona", aliases: ["fergana", "fargona", "fargʻona"] },
