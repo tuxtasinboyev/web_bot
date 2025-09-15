@@ -101,21 +101,21 @@ export default function AdminHomePage() {
   // Viloyat nomini tekshirish uchun yaxshilangan funksiya
   const checkRegionMatch = (address, regionObj) => {
     if (!address) return false;
-    
+
     const addressLower = address.toLowerCase();
-    
+
     // Asosiy nomni tekshirish
     if (addressLower.includes(regionObj.value.toLowerCase())) {
       return true;
     }
-    
+
     // Muqobil nomlarni tekshirish
     for (const alias of regionObj.aliases) {
-      if (addressLower.includes(alias)) {
+      if (addressLower.includes(alias.toLowerCase())) {
         return true;
       }
     }
-    
+
     return false;
   };
 
@@ -124,16 +124,16 @@ export default function AdminHomePage() {
     // Expired filter
     if (showExpired && !isExpired(house.endDate)) return false;
     if (!showExpired && isExpired(house.endDate)) return false;
-    
+
     // Search filter
     if (searchQuery && !house.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    
+
     // Region filter
     if (selectedRegion) {
       const selectedRegionObj = regions.find(r => r.value === selectedRegion);
-      
+
       if (selectedRegionObj && house.address) {
         // Yangi tekshirish funksiyasidan foydalanish
         if (!checkRegionMatch(house.address, selectedRegionObj)) {
@@ -143,7 +143,7 @@ export default function AdminHomePage() {
         return false;
       }
     }
-    
+
     return true;
   });
 
@@ -276,8 +276,8 @@ export default function AdminHomePage() {
           <button
             onClick={() => setShowExpired(!showExpired)}
             className={`px-4 py-2 rounded-md flex items-center justify-center ${showExpired
-                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-red-100 text-red-700 hover:bg-red-200'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
           >
             <Calendar size={18} className="mr-2" />
@@ -293,8 +293,8 @@ export default function AdminHomePage() {
         {filteredHouses.length} ta uy topildi
         {(searchQuery || selectedRegion) && (
           <span>
-            {" "}(<button 
-              onClick={() => {setSearchQuery(""); setSelectedRegion("");}} 
+            {" "}(<button
+              onClick={() => { setSearchQuery(""); setSelectedRegion(""); }}
               className="text-blue-500 hover:underline"
             >
               Filtrlarni tozalash
@@ -327,8 +327,8 @@ export default function AdminHomePage() {
 
                 {/* Amal qilish muddati */}
                 <div className={`absolute top-2 right-2 text-xs font-medium px-2.5 py-0.5 rounded z-10 ${expired
-                    ? 'bg-red-500 text-white'
-                    : 'bg-blue-500 text-white'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-blue-500 text-white'
                   }`}>
                   {house.endDate ? formatEndDate(house.endDate) : "Muddatsiz"}
                   {expired && ' (Muddati tugagan)'}
@@ -412,12 +412,12 @@ export default function AdminHomePage() {
           <div className="col-span-full text-center py-10 bg-white rounded-lg shadow">
             <p className="text-gray-500 text-lg">Hech qanday uy topilmadi</p>
             {(searchQuery || selectedRegion || showExpired) && (
-              <button 
+              <button
                 onClick={() => {
                   setSearchQuery("");
                   setSelectedRegion("");
                   setShowExpired(false);
-                }} 
+                }}
                 className="mt-2 text-blue-500 hover:underline"
               >
                 Barcha filtrlarni tozalash
