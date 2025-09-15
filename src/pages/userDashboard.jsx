@@ -51,7 +51,7 @@ export default function UserDashboard() {
     }, []);
 
     const tabs = [
-        { id: "home",  icon: <Home size={22} /> },
+        { id: "home", icon: <Home size={22} /> },
         { id: "profile", icon: <User size={22} /> },
     ];
 
@@ -103,9 +103,8 @@ export default function UserDashboard() {
                         <button
                             key={tab.id}
                             onClick={() => setActive(tab.id)}
-                            className={`flex flex-col items-center py-3 w-full ${
-                                active === tab.id ? "text-blue-600" : "text-gray-600"
-                            }`}
+                            className={`flex flex-col items-center py-3 w-full ${active === tab.id ? "text-blue-600" : "text-gray-600"
+                                }`}
                         >
                             {tab.icon}
                         </button>
