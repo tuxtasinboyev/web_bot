@@ -114,7 +114,7 @@ export default function OwnerDashboard() {
 
       {/* Footer navigation */}
       <footer className="bg-white shadow-t fixed bottom-0 w-full">
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-4 items-center gap-1">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -130,7 +130,6 @@ export default function OwnerDashboard() {
             className={`flex flex-col items-center py-3 ${active === "add" ? "text-blue-600" : "text-gray-600"}`}
           >
             <PlusCircle size={22} />
-            <span className="text-xs mt-1">Uy qo'shish</span>
           </button>
         </div>
       </footer>
