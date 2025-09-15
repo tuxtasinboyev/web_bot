@@ -50,22 +50,22 @@ export default function AdminHomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRegion, setSelectedRegion] = useState("");
 
-  // O'zbekiston viloyatlari
+  // O'zbekiston viloyatlari va ularning muqobil nomlari
   const regions = [
-    "Toshkent shahri",
-    "Toshkent viloyati",
-    "Andijon",
-    "Buxoro",
-    "Farg'ona",
-    "Jizzax",
-    "Xorazm",
-    "Namangan",
-    "Navoiy",
-    "Qashqadaryo",
-    "Qoraqalpog'iston",
-    "Samarqand",
-    "Sirdaryo",
-    "Surxondaryo"
+    { value: "Toshkent shahri", aliases: ["toshkent sh", "toshkent shahri", "tashkent city"] },
+    { value: "Toshkent viloyati", aliases: ["toshkent v", "toshkent viloyati", "tashkent region"] },
+    { value: "Andijon", aliases: ["andijan", "andijon"] },
+    { value: "Buxoro", aliases: ["bukhara", "buxoro"] },
+    { value: "Farg'ona", aliases: ["fergana", "fargona", "fargʻona"] },
+    { value: "Jizzax", aliases: ["jizzakh", "jizzax"] },
+    { value: "Xorazm", aliases: ["khorezm", "xorazm"] },
+    { value: "Namangan", aliases: ["namangan"] },
+    { value: "Navoiy", aliases: ["navoi", "navoiy"] },
+    { value: "Qashqadaryo", aliases: ["kashkadarya", "qashqadaryo"] },
+    { value: "Qoraqalpog'iston", aliases: ["karakalpakstan", "qoraqalpogiston", "qoraqalpogʻiston"] },
+    { value: "Samarqand", aliases: ["samarkand", "samarqand"] },
+    { value: "Sirdaryo", aliases: ["sirdarya", "sirdaryo"] },
+    { value: "Surxondaryo", aliases: ["surkhandarya", "surxondaryo"] }
   ];
 
   useEffect(() => {
@@ -98,6 +98,27 @@ export default function AdminHomePage() {
     return new Date(endDate) < new Date();
   };
 
+  // Viloyat nomini tekshirish uchun yaxshilangan funksiya
+  const checkRegionMatch = (address, regionObj) => {
+    if (!address) return false;
+    
+    const addressLower = address.toLowerCase();
+    
+    // Asosiy nomni tekshirish
+    if (addressLower.includes(regionObj.value.toLowerCase())) {
+      return true;
+    }
+    
+    // Muqobil nomlarni tekshirish
+    for (const alias of regionObj.aliases) {
+      if (addressLower.includes(alias)) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
   // Filter houses based on search, region and expired status
   const filteredHouses = houses.filter(house => {
     // Expired filter
@@ -110,12 +131,17 @@ export default function AdminHomePage() {
     }
     
     // Region filter
-    if (selectedRegion && house.address) {
-      const address = house.address.toLowerCase();
-      const region = selectedRegion.toLowerCase();
+    if (selectedRegion) {
+      const selectedRegionObj = regions.find(r => r.value === selectedRegion);
       
-      // Check if address contains region name (case insensitive)
-      if (!address.includes(region)) return false;
+      if (selectedRegionObj && house.address) {
+        // Yangi tekshirish funksiyasidan foydalanish
+        if (!checkRegionMatch(house.address, selectedRegionObj)) {
+          return false;
+        }
+      } else if (!house.address) {
+        return false;
+      }
     }
     
     return true;
@@ -241,7 +267,7 @@ export default function AdminHomePage() {
             >
               <option value="">Barcha viloyatlar</option>
               {regions.map(region => (
-                <option key={region} value={region}>{region}</option>
+                <option key={region.value} value={region.value}>{region.value}</option>
               ))}
             </select>
           </div>
