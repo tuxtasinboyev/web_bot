@@ -99,25 +99,23 @@ export default function AdminHomePage() {
   };
 
   // Viloyat nomini tekshirish uchun yaxshilangan funksiya
+  const normalizeString = (str) => str.toLowerCase().replace(/[^\w\s]/gi, '').trim();
+
   const checkRegionMatch = (address, regionObj) => {
     if (!address) return false;
 
-    const addressLower = address.toLowerCase();
+    const addressNormalized = normalizeString(address);
+    const regionNormalized = normalizeString(regionObj.value);
 
-    // Asosiy nomni tekshirish
-    if (addressLower.includes(regionObj.value.toLowerCase())) {
-      return true;
-    }
+    if (addressNormalized.includes(regionNormalized)) return true;
 
-    // Muqobil nomlarni tekshirish
     for (const alias of regionObj.aliases) {
-      if (addressLower.includes(alias.toLowerCase())) {
-        return true;
-      }
+      if (addressNormalized.includes(normalizeString(alias))) return true;
     }
 
     return false;
   };
+
 
   // Filter houses based on search, region and expired status
   const filteredHouses = houses.filter(house => {
