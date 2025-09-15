@@ -434,11 +434,12 @@ export default function MyHouses() {
         <h1 className="text-3xl font-bold text-gray-800">Mening Uylarim</h1>
         <button
           onClick={openAddHouseModal}
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 flex items-center justify-center"
         >
           <Plus size={20} className="mr-2" />
-          Yangi Uy Qo'shish
+          <span className="hidden sm:inline">Yangi Uy Qo'shish</span>
         </button>
+
       </div>
 
       {myHouses.length === 0 ? (
