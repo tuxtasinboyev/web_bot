@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { MapPin, Bed, X, ChevronLeft, ChevronRight, Maximize, Edit, Trash2, Plus, Save, Upload } from "lucide-react"
-import axios from "axios"
+import { Alert, Snackbar } from "@mui/material";
 import TextField from '@mui/material/TextField';
+import axios from "axios";
+import { Bed, ChevronLeft, ChevronRight, Edit, MapPin, Maximize, Plus, Save, Trash2, Upload, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 
 export default function MyHouses() {
@@ -30,6 +31,12 @@ export default function MyHouses() {
     images: [],
     durationDays: 5,
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success | error | warning | info
+  });
+
 
   const [categories, setCategories] = useState([])
   const [myHouses, setMyHouses] = useState([])
@@ -51,6 +58,11 @@ export default function MyHouses() {
     } catch (error) {
       console.error("Error fetching categories:", error)
       setError("Kategoriyalarni yuklashda xatolik yuz berdi")
+      setSnackbar({
+        open: true,
+        message: "Kategoriyalarni yuklashda xatolik yuz berdi",
+        severity: "error"
+      });
     }
   }
 
@@ -75,6 +87,11 @@ export default function MyHouses() {
     } catch (error) {
       console.error("Error fetching houses:", error)
       setError("Uylarni yuklashda xatolik yuz berdi")
+      setSnackbar({
+        open: true,
+        message: "Uylarni yuklashda xatolik yuz berdi",
+        severity: "error"
+      });
     } finally {
       setLoading(false)
     }
@@ -162,12 +179,20 @@ export default function MyHouses() {
     try {
       const token = getAuthToken()
       if (!token) {
-        alert("Access token topilmadi")
+        setSnackbar({
+          open: true,
+          message: "Access token topilmadi",
+          severity: "error"
+        });
         return
       }
 
       if (editingHouse.durationDays < 5 || editingHouse.durationDays > 20) {
-        alert("Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!");
+        setSnackbar({
+          open: true,
+          message: "Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!",
+          severity: "error"
+        });
         return;
       }
 
@@ -209,10 +234,18 @@ export default function MyHouses() {
       await fetchMyHouses()
       closeEditModal()
       closeModal()
-      alert("Uy muvaffaqiyatli yangilandi!")
+      setSnackbar({
+        open: true,
+        message: "Uy muvaffaqiyatli yangilandi!",
+        severity: "success"
+      });
     } catch (error) {
       console.error("Error updating house:", error)
-      alert("Uyni yangilashda xatolik yuz berdi")
+      setSnackbar({
+        open: true,
+        message: "Uyni yangilashda xatolik yuz berdi",
+        severity: "error"
+      });
     }
   }
 
@@ -220,7 +253,11 @@ export default function MyHouses() {
     try {
       const token = getAuthToken()
       if (!token) {
-        alert("Access token topilmadi")
+        setSnackbar({
+          open: true,
+          message: "Access token topilmadi",
+          severity: "error"
+        });
         return
       }
 
@@ -238,10 +275,18 @@ export default function MyHouses() {
       await fetchMyHouses()
       closeDeleteModal()
       closeModal()
-      alert("Uy muvaffaqiyatli o'chirildi!")
+      setSnackbar({
+        open: true,
+        message: "Uy muvaffaqiyatli o'chirildi!",
+        severity: "success"
+      });
     } catch (error) {
       console.error("Error deleting house:", error)
-      alert("Uyni o'chirishda xatolik yuz berdi")
+      setSnackbar({
+        open: true,
+        message: "Uyni o'chirishda xatolik yuz berdi",
+        severity: "error"
+      });
     }
   }
 
@@ -329,24 +374,40 @@ export default function MyHouses() {
       !newHouse.description ||
       !newHouse.durationDays
     ) {
-      alert("Iltimos, barcha majburiy maydonlarni to'ldiring!");
+      setSnackbar({
+        open: true,
+        message: "Iltimos, barcha majburiy maydonlarni to'ldiring!",
+        severity: "error"
+      });
       return;
     }
 
     // 2️⃣ Rasm sonini tekshiramiz
     if (newImages.length < 3) {
-      alert("Kamida 3 ta rasm yuklash kerak!");
+      setSnackbar({
+        open: true,
+        message: "Kamida 3 ta rasm yuklash kerak!",
+        severity: "error"
+      });
       return;
     }
     if (newHouse.durationDays < 5 || newHouse.durationDays > 20) {
-      alert("Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!");
+      setSnackbar({
+        open: true,
+        message: "Uy amal qilish muddati 5 dan 20 kungacha bo'lishi kerak!",
+        severity: "error"
+      });
       return;
     }
 
     try {
       const token = getAuthToken();
       if (!token) {
-        alert("Access token topilmadi");
+        setSnackbar({
+          open: true,
+          message: "Access token topilmadi",
+          severity: "error"
+        });
         return;
       }
 
@@ -382,9 +443,17 @@ export default function MyHouses() {
       // 6️⃣ Uyni qo'shgandan keyin ro'yxatni yangilaymiz
       await fetchMyHouses();
       closeAddHouseModal();
-      alert("Uy muvaffaqiyatli qo'shildi!");
+      setSnackbar({
+        open: true,
+        message: "Uy muvaffaqiyatli qo'shildi!",
+        severity: "success"
+      });
     } catch (error) {
-      alert("Uy qo'shishda xatolik yuz berdi");
+      setSnackbar({
+        open: true,
+        message: "Uy qo'shishda xatolik yuz berdi",
+        severity: "error"
+      });
     }
   };
 
@@ -1088,6 +1157,21 @@ export default function MyHouses() {
           </div>
         </div>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
 
     </div>
   )

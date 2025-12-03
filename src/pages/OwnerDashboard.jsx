@@ -38,6 +38,7 @@ export default function OwnerDashboard() {
           } catch (err) {
             // agar 401 yoki boshqasi bo'lsa, backendga kira olmadik
             console.warn("Backend /users/me not available or unauthorized:", err?.response?.status);
+            
           }
         }
 

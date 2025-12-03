@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Alert, Snackbar } from '@mui/material';
 
 const UsersTab = () => {
   const [users, setUsers] = useState([]);
@@ -30,6 +31,11 @@ const UsersTab = () => {
     imgUrl: '',
     file: null
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success, error, warning, info
+  });
 
   const navigate = useNavigate();
   const token = localStorage.getItem("accessToken");
@@ -45,9 +51,19 @@ const UsersTab = () => {
       setTotal(res.data.total);
       setTotalPages(res.data.totalPages);
       setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchilar muvaffaqiyatli yuklandi",
+        severity: "success",
+      });
     } catch (error) {
       console.error('Foydalanuvchilarni yuklashda xatolik:', error);
       setLoading(false);
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchilarni yuklashda xatolik yuz berdi",
+        severity: "error",
+      });
     }
   };
 
@@ -108,6 +124,7 @@ const UsersTab = () => {
           formData,
           { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' } }
         );
+        
       } else {
         const userData = {
           name: selectedUser.name,
@@ -121,16 +138,25 @@ const UsersTab = () => {
           userData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
+      
       }
 
       // Yangilangan ma'lumotlarni olish
       await fetchUsers();
       setShowEditModal(false);
       setSelectedUser(null);
-      alert('Foydalanuvchi muvaffaqiyatli yangilandi!');
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchi muvaffaqiyatli yangilandi",
+        severity: "success",
+      });
     } catch (error) {
       console.error(error.response?.data || error.message);
-      alert('Foydalanuvchini yangilashda xatolik yuz berdi: ' + (error.response?.data?.message || error.message));
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchini yangilashda xatolik yuz berdi: " + (error.response?.data?.message || error.message),
+        severity: "error",
+      });
     }
   };
 
@@ -148,9 +174,18 @@ const UsersTab = () => {
       await fetchUsers();
       setShowDeleteModal(false);
       setSelectedUser(null);
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchi muvaffaqiyatli o'chirildi",
+        severity: "success",
+      });
     } catch (error) {
       console.error('Foydalanuvchini o\'chirishda xatolik:', error);
-      alert('Foydalanuvchini o\'chirishda xatolik yuz berdi');
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchini o'chirishda xatolik yuz berdi: " + (error.response?.data?.message || error.message),
+        severity: "error",
+      });
     }
   };
 
@@ -223,12 +258,20 @@ const UsersTab = () => {
       });
 
       setShowAddModal(false);
-      alert('Foydalanuvchi muvaffaqiyatli qo\'shildi!');
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchi muvaffaqiyatli qo'shildi!",
+        severity: "success",
+      });
 
     } catch (error) {
       console.error('Foydalanuvchi qo\'shishda xatolik:', error);
       const errorMessage = error.response?.data?.message || error.message;
-      alert('Foydalanuvchi qo\'shishda xatolik yuz berdi: ' + errorMessage);
+      setSnackbar({
+        open: true,
+        message: "Foydalanuvchi qo'shishda xatolik yuz berdi: " + errorMessage,
+        severity: "error",
+      });
     }
   };
 
@@ -681,6 +724,20 @@ const UsersTab = () => {
           </div>
         </div>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

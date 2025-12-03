@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Trash2, Edit3, PlusCircle, Check, X, Search } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Alert, Snackbar } from "@mui/material";
 
 export default function Category() {
   const [categories, setCategories] = useState([]);
@@ -9,6 +10,13 @@ export default function Category() {
   const [editCategory, setEditCategory] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  // Snackbar uchun state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
 
   // Modal holati
   const [showModal, setShowModal] = useState(false);
@@ -43,6 +51,11 @@ export default function Category() {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
+        setSnackbar({
+          open: true,
+          message: "Avtorizatsiya tokeni topilmadi",
+          severity: "error"
+        });
         navigate('/login')
         return
       }
@@ -63,10 +76,19 @@ export default function Category() {
       setNewCategory("");
       setShowModal(false);
       setCurrentPage(Math.ceil((categories.length + 1) / itemsPerPage));
+      setSnackbar({
+        open: true,
+        message: "Kategoriya muvaffaqiyatli qo‘shildi",
+        severity: "success"
+      });
 
     } catch (error) {
       console.error(error);
-      alert("Category qo'shilmadi");
+      setSnackbar({
+        open: true,
+        message: "Kategoriya qo'shilmadi",
+        severity: "error"
+      });
     }
   };
 
@@ -86,10 +108,21 @@ export default function Category() {
       });
 
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      setSnackbar({
+        open: true,
+        message: "Kategoriya muvaffaqiyatli o‘chirildi",
+        severity: "success"
+      });
+
 
     } catch (error) {
       console.error(error);
-      alert("Category o'chirilmadi");
+      setSnackbar({
+        open: true,
+        message: "Kategoriya o'chirilmadi",
+        severity: "error"
+      });
+
     }
   };
   // ✏️ Tahrirlashni boshlash
@@ -128,10 +161,19 @@ export default function Category() {
 
       setEditCategory(null);
       setEditValue("");
+      setSnackbar({
+        open: true,
+        message: "Kategoriya muvaffaqiyatli tahrirlandi",
+        severity: "success"
+      });
 
     } catch (error) {
       console.error(error);
-      alert("Category tahrirlanmadi");
+      setSnackbar({
+        open: true,
+        message: "Kategoriya tahrirlanmadi",
+        severity: "error"
+      });
     }
   };
 
@@ -306,6 +348,21 @@ export default function Category() {
           </div>
         </div>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
     </div>
   );
 }

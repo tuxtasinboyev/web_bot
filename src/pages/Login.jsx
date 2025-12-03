@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Phone, Lock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Alert, Snackbar } from "@mui/material";
 
 export default function Login({ onSuccess }) {
   
@@ -13,6 +14,12 @@ export default function Login({ onSuccess }) {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success | error | warning | info
+  });
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -49,6 +56,13 @@ export default function Login({ onSuccess }) {
 
       localStorage.setItem("accessToken", accessToken);
 
+      setSnackbar({
+        open: true,
+        message: "✅ Tizimga muvaffaqiyatli kirdingiz",
+        severity: "success"
+      });
+
+
       if (onSuccess) onSuccess(res.data.safeUSer);
 
       // navigate("/admin");
@@ -63,11 +77,11 @@ export default function Login({ onSuccess }) {
         return
       }
 
-      alert(
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Login xatosi"
-      );
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || "Login xatosi",
+        severity: "error"
+      });
     } finally {
       setLoading(false);
     }
@@ -131,6 +145,21 @@ export default function Login({ onSuccess }) {
           </Link>
         </p>
       </form>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
     </div>
   );
 }

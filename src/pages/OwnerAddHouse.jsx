@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Save, Trash2, Upload, Calendar } from "lucide-react";
 import axios from "axios";
-import { TextField, Slider, Box, Typography } from "@mui/material";
+import { TextField, Slider, Box, Typography, Snackbar, Alert } from "@mui/material";
 
 export default function AddHouse({ onAddHouse }) {
   const [houseData, setHouseData] = useState({
@@ -24,6 +24,12 @@ export default function AddHouse({ onAddHouse }) {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [showDurationModal, setShowDurationModal] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success, error, warning, info
+  });
+
 
   // Fetch categories
   useEffect(() => {
@@ -34,7 +40,11 @@ export default function AddHouse({ onAddHouse }) {
         setCategories(response.data);
       } catch (error) {
         console.error("Kategoriyalarni yuklashda xatolik:", error);
-        alert("Kategoriyalarni yuklashda xatolik yuz berdi");
+        setSnackbar({
+          open: true,
+          message: "Kategoriyalarni yuklashda xatolik yuz berdi",
+          severity: "error",
+        });
       } finally {
         setCategoriesLoading(false);
       }
@@ -126,7 +136,11 @@ export default function AddHouse({ onAddHouse }) {
     } catch (error) {
       console.error("Uy qo'shishda xatolik:", error);
       const msg = error.response?.data?.message || "Uy qo'shishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.";
-      alert(msg);
+      setSnackbar({
+        open: true,
+        message: msg,
+        severity: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -386,6 +400,21 @@ export default function AddHouse({ onAddHouse }) {
           </div>
         </div>
       )}
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar> 
     </div>
   );
 }

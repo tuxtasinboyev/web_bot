@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Camera, Save } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Alert, Snackbar } from "@mui/material";
 
 export default function Profile({ profileData, setProfileData }) {
     const [isEditing, setIsEditing] = useState(false);
@@ -17,6 +18,11 @@ export default function Profile({ profileData, setProfileData }) {
     // rasm uchun
     const [tempImage, setTempImage] = useState(null);
     const [tempImageFile, setTempImageFile] = useState(null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success", // success, error, warning, info
+    });
 
     const navigate = useNavigate();
 
@@ -64,7 +70,11 @@ export default function Profile({ profileData, setProfileData }) {
                 setIsEditing(false);
                 setTempImage(null);
                 setTempImageFile(null);
-                alert("Profil lokalda yangilandi (serverga token yo'q)");
+                setSnackbar({
+                    open: true,
+                    message: "Profil lokalda yangilandi (serverga token yo'q)",
+                    severity: "success",
+                });
                 return;
             }
 
@@ -109,11 +119,18 @@ export default function Profile({ profileData, setProfileData }) {
             setIsEditing(false);
             setTempImage(null);
             setTempImageFile(null);
-
-            alert("Profil muvaffaqiyatli yangilandi!");
+            setSnackbar({
+                open: true,
+                message: "Profil muvaffaqiyatli yangilandi!",
+                severity: "success",
+            });
         } catch (error) {
             console.error("Profile save error:", error);
-            alert("Profil saqlanmadi");
+            setSnackbar({
+                open: true,
+                message: "Profil saqlanmadi",
+                severity: "error",
+            });
         }
     };
 
@@ -232,6 +249,20 @@ export default function Profile({ profileData, setProfileData }) {
                     )}
                 </div>
             </div>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }

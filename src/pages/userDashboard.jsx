@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
-import { Home, User } from "lucide-react";
 import axios from "axios";
+import { Home, User } from "lucide-react";
+import { useEffect, useState } from "react";
 import HomePage from "./OwnerHomePage";
 import Profile from "./profile";
+import { Alert, Snackbar } from "@mui/material";
 
 export default function UserDashboard() {
     const [active, setActive] = useState("home");
@@ -12,6 +13,11 @@ export default function UserDashboard() {
         image: "https://via.placeholder.com/150",
     });
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success", // success, error, warning, info
+    });
 
     useEffect(() => {
         const fetchProfileFromBackend = async () => {
@@ -28,9 +34,19 @@ export default function UserDashboard() {
                         username: response.data.username || "unknown",
                         image: response.data.image || "https://via.placeholder.com/150",
                     });
+                    setSnackbar({
+                        open: true,
+                        message: "Profil muvaffaqiyatli yuklandi",
+                        severity: "success",
+                    });
                 }
             } catch (error) {
                 console.error("Backenddan profilni olishda xatolik:", error);
+                setSnackbar({
+                    open: true,
+                    message: "Profilni yuklashda xatolik yuz berdi",
+                    severity: "error",
+                });
             } finally {
                 setLoadingProfile(false);
             }
@@ -45,6 +61,11 @@ export default function UserDashboard() {
                 image: tgUser.photo_url || "https://via.placeholder.com/150",
             });
             setLoadingProfile(false);
+            setSnackbar({
+                open: true,
+                message: "Profil muvaffaqiyatli yuklandi",
+                severity: "success",
+            });
         } else {
             fetchProfileFromBackend();
         }
@@ -111,6 +132,20 @@ export default function UserDashboard() {
                     ))}
                 </div>
             </footer>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </div>
     );
 }

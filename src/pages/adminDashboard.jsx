@@ -1,6 +1,134 @@
+// import React, { useState, useEffect } from 'react';
+// import { useNavigate } from "react-router-dom";
+// import axios from 'axios';
+
+// import UsersTab from './usersTabs';
+// import HomePage from './OwnerHomePage';
+// import Profile from './profile';
+// import Category from './Category';
+// import Dashboard from './Dashboard';
+
+// import {
+//   User as UserIcon,
+//   Home as HomeIcon,
+//   BarChart as ChartIcon,
+//   LogOut as LogoutIcon,
+// } from 'lucide-react';
+// import AdminHomePage from './AdminHomePage';
+
+// const AdminDashboard = () => {
+//   const [activeTab, setActiveTab] = useState('dashboard');
+//   const [users, setUsers] = useState([]);
+//   const [houses, setHouses] = useState([]);
+//   const [categories, setCategories] = useState([]);
+//   const [profile, setProfile] = useState({});
+//   const navigate = useNavigate();
+
+//   // Backend'dan barcha ma'lumotlarni olish
+//   useEffect(() => {
+//     const token = localStorage.getItem('accessToken');
+//     if (!token) {
+//       navigate('/login');
+//       return;
+//     }
+
+//     const fetchData = async () => {
+//       try {
+//         const [usersRes, housesRes, categoriesRes, profileRes] = await Promise.all([
+//           axios.get('https://houzing.botify.uz/users', { headers: { Authorization: `Bearer ${token}` } }),
+//           axios.get('https://houzing.botify.uz/houses', { headers: { Authorization: `Bearer ${token}` } }),
+//           axios.get('https://houzing.botify.uz/categories', { headers: { Authorization: `Bearer ${token}` } }),
+//           axios.get('https://houzing.botify.uz/users/me', { headers: { Authorization: `Bearer ${token}` } }),
+//         ]);
+
+//         setUsers(usersRes.data.users);
+//         setHouses(housesRes.data.data);
+//         setCategories(categoriesRes.data);
+//         setProfile(profileRes.data);
+//       } catch (error) {
+//         console.error('Fetch error:', error);
+//         navigate('/login');
+//       }
+//     };
+
+//     fetchData();
+
+//     // Telegram WebApp setup
+//     if (window.Telegram?.WebApp) {
+//       window.Telegram.WebApp.ready();
+//       window.Telegram.WebApp.expand();
+//     }
+//   }, [navigate]);
+
+
+//   // Kontent render
+//   const renderContent = () => {
+//     switch (activeTab) {
+//       case 'dashboard': return <div className="min-h-[350px]"><Dashboard users={users} houses={houses} categories={categories} /></div>;
+//       case 'users': return <UsersTab users={users} setUsers={setUsers} />;
+//       case 'houses': return <div className="p-4"><AdminHomePage /></div>;
+//       case 'categories': return <div className="p-4"><Category /></div>;
+//       case 'profile': return <div className="p-4"><Profile profileData={profile} setProfileData={setProfile} /></div>;
+//       default: return <Dashboard users={users} houses={houses} categories={categories} />;
+//     }
+//   };
+
+//   // Footer menu
+//   const menuItems = [
+//     { id: 'dashboard', icon: <HomeIcon size={20} /> },
+//     { id: 'users', icon: <UserIcon size={20} /> },
+//     { id: 'houses', icon: <HomeIcon size={20} /> },
+//     { id: 'categories', icon: <ChartIcon size={20} /> },
+//     { id: 'profile',  icon: <UserIcon size={20} /> },
+//   ];
+
+//   return (
+//     <div className="flex flex-col min-h-screen bg-gray-50">
+//       {/* Header */}
+//       <header className="sticky top-0 z-50 bg-white shadow p-4 flex justify-between items-center">
+//         <h1 className="text-xl font-bold text-blue-600">Admin Panel</h1>
+//         <div className="flex items-center gap-2">
+//           {profile.imgUrl ? (
+//             <img src={profile.imgUrl} alt="profile" className="w-8 h-8 rounded-full" />
+//           ) : (
+//             <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+//               <UserIcon size={16} className="text-gray-500" />
+//             </div>
+//           )}
+//           <span className="text-sm font-medium">{profile.name}</span>
+//         </div>
+//       </header>
+
+//       {/* Content */}
+//       <main className="flex-1 overflow-y-auto pb-16">
+//         {renderContent()}
+//       </main>
+
+//       {/* Footer */}
+//       <footer className="bg-white shadow-t fixed bottom-0 w-full z-10">
+//         <div className="grid grid-cols-5 gap-1">
+//           {menuItems.map(tab => (
+//             <button
+//               key={tab.id}
+//               onClick={() => setActiveTab(tab.id)}
+//               className={`flex flex-col items-center py-2 text-xs ${activeTab === tab.id ? "text-blue-600 bg-blue-50" : "text-gray-600"
+//                 }`}
+//             >
+//               {tab.icon}
+//             </button>
+//           ))}
+//         </div>
+//       </footer>
+
+//     </div>
+//   );
+// };
+
+// export default AdminDashboard;
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
+import { Snackbar, Alert } from '@mui/material';
 
 import UsersTab from './usersTabs';
 import HomePage from './OwnerHomePage';
@@ -24,10 +152,33 @@ const AdminDashboard = () => {
   const [profile, setProfile] = useState({});
   const navigate = useNavigate();
 
+  // Snackbar uchun state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'info' // 'success', 'error', 'warning', 'info'
+  });
+
+  // Snackbar yopish
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  // Snackbar ochish helper function
+  const showSnackbar = (message, severity = 'info') => {
+    setSnackbar({
+      open: true,
+      message,
+      severity
+    });
+  };
+
   // Backend'dan barcha ma'lumotlarni olish
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
+      showSnackbar('Iltimos, tizimga kiring!', 'warning');
       navigate('/login');
       return;
     }
@@ -45,9 +196,24 @@ const AdminDashboard = () => {
         setHouses(housesRes.data.data);
         setCategories(categoriesRes.data);
         setProfile(profileRes.data);
+
+        showSnackbar('Ma\'lumotlar muvaffaqiyatli yuklandi!', 'success');
       } catch (error) {
         console.error('Fetch error:', error);
-        navigate('/login');
+
+        if (error.response?.status === 401) {
+          showSnackbar('Sessiya tugadi. Qaytadan kiring!', 'error');
+        } else if (error.response?.status === 403) {
+          showSnackbar('Ruxsat yo\'q!', 'error');
+        } else if (error.response?.status === 500) {
+          showSnackbar('Server xatoligi!', 'error');
+        } else if (error.message === 'Network Error') {
+          showSnackbar('Internet bilan muammo!', 'error');
+        } else {
+          showSnackbar('Ma\'lumotlarni yuklashda xatolik!', 'error');
+        }
+
+        setTimeout(() => navigate('/login'), 2000);
       }
     };
 
@@ -60,15 +226,14 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-
   // Kontent render
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <div className="min-h-[350px]"><Dashboard users={users} houses={houses} categories={categories} /></div>;
-      case 'users': return <UsersTab users={users} setUsers={setUsers} />;
-      case 'houses': return <div className="p-4"><AdminHomePage /></div>;
-      case 'categories': return <div className="p-4"><Category /></div>;
-      case 'profile': return <div className="p-4"><Profile profileData={profile} setProfileData={setProfile} /></div>;
+      case 'users': return <UsersTab users={users} setUsers={setUsers} showSnackbar={showSnackbar} />;
+      case 'houses': return <div className="p-4"><AdminHomePage showSnackbar={showSnackbar} /></div>;
+      case 'categories': return <div className="p-4"><Category showSnackbar={showSnackbar} /></div>;
+      case 'profile': return <div className="p-4"><Profile profileData={profile} setProfileData={setProfile} showSnackbar={showSnackbar} /></div>;
       default: return <Dashboard users={users} houses={houses} categories={categories} />;
     }
   };
@@ -79,7 +244,7 @@ const AdminDashboard = () => {
     { id: 'users', icon: <UserIcon size={20} /> },
     { id: 'houses', icon: <HomeIcon size={20} /> },
     { id: 'categories', icon: <ChartIcon size={20} /> },
-    { id: 'profile',  icon: <UserIcon size={20} /> },
+    { id: 'profile', icon: <UserIcon size={20} /> },
   ];
 
   return (
@@ -120,6 +285,22 @@ const AdminDashboard = () => {
         </div>
       </footer>
 
+      {/* MUI Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

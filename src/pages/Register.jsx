@@ -2,6 +2,7 @@ import { useState } from "react";
 import { User, Phone, Briefcase, Lock, Image } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Alert, Snackbar } from "@mui/material";
 
 export default function Register({ onSuccess }) {
   const [form, setForm] = useState({
@@ -14,6 +15,11 @@ export default function Register({ onSuccess }) {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success, error, warning, info
+  });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -65,10 +71,11 @@ export default function Register({ onSuccess }) {
       });
     } catch (err) {
       console.error("❌ Xatolik:", err.response?.data || err.message);
-      alert(
-        "Xatolik: " +
-        (err.response?.data?.message || err.message || "Server xatosi")
-      );
+      setSnackbar({
+        open: true,
+        message: err.response?.data?.message || err.message || "Server xatosi",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -161,6 +168,19 @@ export default function Register({ onSuccess }) {
           </Link>
         </p>
       </form>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar> 
     </div>
   );
 }
